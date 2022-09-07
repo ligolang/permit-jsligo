@@ -19,7 +19,7 @@ type initial_extended_storage = {
     permits : Token.Extension.permits,
     userExpiries : Token.Extension.userExpiries,
     permitExpiries : Token.Extension.permitExpiries,
-    tokenTotalSupply : Token.Extension.tokenTotalSupply
+    tokenTotalSupply : Token.Extension.TokenTotalSupply.t
 };
 
 // Some dummy values when they don't matter for a given test 
@@ -35,7 +35,7 @@ export let getInitialExtendedStorage = ([admin, initDefaultExpiry, initMaxExpiry
         permits : (Big_map.empty as Token.Extension.permits),
         userExpiries : (Big_map.empty as Token.Extension.userExpiries),
         permitExpiries : (Big_map.empty as Token.Extension.permitExpiries),
-        tokenTotalSupply : (Big_map.empty as Token.Extension.tokenTotalSupply)
+        tokenTotalSupply : (Big_map.empty as Token.Extension.TokenTotalSupply.t)
     };
 };
 
@@ -50,7 +50,7 @@ export let originate = (init_storage: Token.storage) : originated => {
 export let originateFromFile = (init_storage : Token.storage) : originated => {
     let f = "./src/main.jsligo";
     let v_mich = Test.run( ((x: Token.storage) => x), init_storage);
-    let [addr, _, _] = Test.originate_from_file(f, "main", (list(["_get_default_expiry", "_get_counter"]) as list<string>), v_mich, 0 as tez);
+    let [addr, _, _] = Test.originate_from_file(f, "main", (list(["getDefaultExpiry", "getCounter"]) as list<string>), v_mich, 0 as tez);
     let taddr : taddr = Test.cast_address (addr);
     let contr = Test.to_contract (taddr);
     return {addr : addr, taddr : taddr, contr : contr}

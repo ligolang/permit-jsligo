@@ -16,26 +16,26 @@ export type mintOrBurn = [@layout:comb] {
 export type permitParams = [key, [signature, bytes]];
 export type expiryParams = [address, [nat, option<bytes>]];
 
-let create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], storage]) : result => {
+const create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], storage]) : result => {
     let [metadata,owner,amount] = paramCreate;
     Extension.assertAdmin(s.extension);
     let md = Storage.addNewToken(s.token_metadata, metadata.token_id, metadata);
     let s = Storage.setTokenMetadata(s, md);
     let ledger = FA2.Ledger.increase_token_amount_for_user(s.ledger)(owner)(metadata.token_id)(amount);
     let newStore = FA2.Storage.set_ledger(s)(ledger);
-    let supply = Extension.createSupply(newStore.extension.tokenTotalSupply, metadata.token_id, amount);
+    let supply = Extension.TokenTotalSupply.createSupply(newStore.extension.tokenTotalSupply, metadata.token_id, amount);
     [Constants.noOperation, { ...newStore, extension : Extension.setSupply(s.extension, supply) }]
 };
 
-let mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
+const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
     Extension.assertAdmin(s.extension);
-    let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, Extension.tokenTotalSupply], mintOrBurn]) : [FA2.Ledger.t, Extension.tokenTotalSupply] => {
+    let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
         let [ledger,supply] = ledgerAndSupply;
         let {owner,tokenId,amount_} = paramMint;
         FA2.Storage.assert_token_exist(s)(tokenId);
         [
             FA2.Ledger.increase_token_amount_for_user(ledger)(owner)(tokenId)(amount_),
-            Extension.increaseSupply(supply, tokenId, amount_)
+            Extension.TokenTotalSupply.increaseSupply(supply, tokenId, amount_)
         ]
     };
     let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.tokenTotalSupply], lst);
@@ -43,14 +43,14 @@ let mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
     [Constants.noOperation, { ...s, extension : Extension.setSupply(s.extension, supply) }]
 };
 
-let burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
+const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
    Extension.assertAdmin(s.extension);
-   let processOne = ([ledgerAndSupply, paramBurn] : [[FA2.Ledger.t, Extension.tokenTotalSupply], mintOrBurn]) : [FA2.Ledger.t, Extension.tokenTotalSupply] => {
+   let processOne = ([ledgerAndSupply, paramBurn] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
       let [ledger,supply] = ledgerAndSupply;
       let {owner,tokenId,amount_} = paramBurn;
       [
         FA2.Ledger.decrease_token_amount_for_user(ledger)(owner)(tokenId)(amount_),
-        Extension.decreaseSupply(supply, tokenId, amount_)
+        Extension.TokenTotalSupply.decreaseSupply(supply, tokenId, amount_)
       ]
     };
    let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.tokenTotalSupply], lst);
@@ -59,7 +59,7 @@ let burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
 };
 
 // TZIP-17
-let permit = ([permits, s] : [list<permitParams>, storage]) : result => {
+const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
     let processPermit = ([ext, permit] : [Extension.t, permitParams]) : Extension.t => {
         let [pub_key, [sig, hash_]] = permit;
         let packed = Bytes.pack ([(Tezos.get_chain_id()), Tezos.get_self_address()], [ext.counter, hash_]);
@@ -85,7 +85,7 @@ let permit = ([permits, s] : [list<permitParams>, storage]) : result => {
 };
 
 // TZIP-17
-let setExpiry = ([p, s] : [expiryParams, storage]) : result => {
+const setExpiry = ([p, s] : [expiryParams, storage]) : result => {
     let [userAddress, [seconds, permitHashOpt]] = p;
     let _checkMaxExpiry : unit = assert_with_error((seconds <= s.extension.maxExpiry), Errors.maxSecondsExceeded);
     let _checkSender : unit = assert_with_error((Tezos.get_sender() == userAddress), Errors.forbiddenExpiryUpdate);
@@ -95,7 +95,7 @@ let setExpiry = ([p, s] : [expiryParams, storage]) : result => {
                 Constants.noOperation,
                 {...s, extension : { ...s.extension, 
                     userExpiries : Big_map.add(userAddress, (Some(seconds)), s.extension.userExpiries) }}
-            ];                        
+            ];
         },
         Some: (permit_hash: bytes) => {
             return [
@@ -111,11 +111,13 @@ let setExpiry = ([p, s] : [expiryParams, storage]) : result => {
 };
 
 // TZIP-17 implementation of TZIP-12 Transfer
-let transferPermitted = ([t, s]: [FA2.transfer, storage]) : result => {
-     let makeTransfer = ([acc, t] : [[FA2.Ledger.t, Extension.t], FA2.transfer_from]) : [FA2.Ledger.t, Extension.t] => {
+const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
+     let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, Extension.t], FA2.transfer_from]) : [FA2.Ledger.t, Extension.t] => {
         let [ledger, ext] = acc;
-        const [isTransferAuthorized, ext] = Extension.transferPresigned(ext, t);
-        const {from_, tx} = t;
+        let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
+        let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash]; 
+        const [isTransferAuthorized, ext] = Extension.transferPresigned(ext, permitKey);
+        const {from_, tx} = transferFrom;
         let applyTransfer = ([ledger, dst] : [FA2.Ledger.t, FA2.atomic_trans]) : FA2.Ledger.t => {
             let {token_id, amount, to_} = dst;
             FA2.Storage.assert_token_exist(s)(token_id);
@@ -133,15 +135,15 @@ let transferPermitted = ([t, s]: [FA2.transfer, storage]) : result => {
         let ledger = List.fold(applyTransfer, tx, ledger);
         [ledger, ext]
     };
-    let [newLedger, newExt] = List.fold(makeTransfer, t, [s.ledger, s.extension]);
+    let [newLedger, newExt] = List.fold(makeTransfer, transfer, [s.ledger, s.extension]);
     [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
 };
 
-let setAdmin = ([addr, s]: [address, storage]) : result => { 
+const setAdmin = ([addr, s]: [address, storage]) : result => { 
     [Constants.noOperation, { ...s, extension : Extension.setAdmin(s.extension, addr) }]
 };
 
-export type parameter = [@layout:comb]
+export type parameter = 
     ["Transfer", FA2.transfer] |
     ["Balance_of", FA2.balance_of] |
     ["Update_operators", FA2.update_operators] |
@@ -152,7 +154,7 @@ export type parameter = [@layout:comb]
     ["SetExpiry", expiryParams] |
     ["SetAdmin", address];
 
-export let main = ([p,s]: [parameter, storage]): result => {
+export const main = ([p,s]: [parameter, storage]): result => {
     return match (p, {
         Transfer:         (p: FA2.transfer) => transferPermitted(p,s),
         Balance_of:       (p: FA2.balance_of) => FA2.balance_of(p)(s),
@@ -173,10 +175,10 @@ export let main = ([p,s]: [parameter, storage]): result => {
 //         --project-root . \
 //         --michelson-format json
 
-let _get_default_expiry = ([_,s]: [unit, storage]) : nat => {
+const getDefaultExpiry = ([_,s]: [unit, storage]) : nat => {
     return s.extension.defaultExpiry
 };
 
-let _get_counter = ([_,s]: [unit, storage]) : nat => {
+const getCounter = ([_,s]: [unit, storage]) : nat => {
     return s.extension.counter
 };

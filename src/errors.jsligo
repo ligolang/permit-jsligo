@@ -7,3 +7,5 @@ export const missigned       = "MISSIGNED";
 
 export const maxSecondsExceeded = "MAX_SECONDS_EXCEEDED";
 export const forbiddenExpiryUpdate = "FORBIDDEN_EXPIRY_UPDATE";
+
+export const missingExpiry = "NO_EXPIRY_FOUND"

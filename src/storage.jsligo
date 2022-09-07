@@ -2,19 +2,26 @@
 #import "./errors.jsligo" "Errors"
 #import "./extension.jsligo" "Extension"
 
+
+// type supply_extension = SupplyExtension.t
+// type permit_extension = Extension.t
+// type permit_extension_full = permit_extension<supply_extension>
+// type fa2_storage = FA2.storage;
+// export type t = fa2_storage<permit_extension_full>;
+
 type storage = FA2.storage;
 type extension = Extension.t;
 export type t = storage<extension>;
 
-let getTokenMetadata = (s:t) : FA2.TokenMetadata.t => {
+const getTokenMetadata = (s:t) : FA2.TokenMetadata.t => {
     return s.token_metadata
 };
 
-export let setTokenMetadata = ([s, token_metadata]: [t, FA2.TokenMetadata.t]) : t => {
+export const setTokenMetadata = ([s, token_metadata]: [t, FA2.TokenMetadata.t]) : t => {
     return {...s, token_metadata : token_metadata }
 };
 
-export let addNewToken = ([md, tokenId, data]: [FA2.TokenMetadata.t, nat, FA2.TokenMetadata.data]) : FA2.TokenMetadata.t => {
+export const addNewToken = ([md, tokenId, data]: [FA2.TokenMetadata.t, nat, FA2.TokenMetadata.data]) : FA2.TokenMetadata.t => {
     assert_with_error((! (Big_map.mem(tokenId, md))), Errors.tokenExist);
     Big_map.add(tokenId, data, md);
 };
