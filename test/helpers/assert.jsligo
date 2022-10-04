@@ -1,5 +1,5 @@
 // Assert contract call results in failwith with given string
-export let string_failure = ([res, expected]: [test_exec_result, string]) : unit => {
+export const string_failure = ([res, expected]: [test_exec_result, string]) : unit => {
     let expected = Test.eval(expected);
     return match (res, {
         Fail: (x: test_exec_error) => (
@@ -14,7 +14,7 @@ export let string_failure = ([res, expected]: [test_exec_result, string]) : unit
 };
 
 // Assert contract result is successful
-export let tx_success = (res: test_exec_result) : unit => {
+export const tx_success = (res: test_exec_result) : unit => {
     return match (res, {
         Success: (_: unit) => unit,
         Fail: (x: test_exec_result) => (

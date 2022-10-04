@@ -4,12 +4,12 @@
 #import "./bootstrap/bootstrap.jsligo" "Bootstrap"
 #import "../src/main.jsligo" "Token"
 
-let _ = Log.describe("[Set_admin] test suite");
+const _ = Log.describe("[Set_admin] test suite");
 
 // Boostrapping of the test environment
 const init_tok_amount = (10 as nat);
 
-let bootstrap = (_: unit) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
+const bootstrap = (_: unit) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(Bootstrap.dummy_genesis_ts);
     let base_extended_storage = Token_helper.getInitialExtendedStorage(
       admin, Token_helper.dummyDefaultExpiry, Token_helper.dummyMaxExpiry);
@@ -18,7 +18,7 @@ let bootstrap = (_: unit) : [Token_helper.originated, address, [[address, key, s
 };
 
 // Successful setting of admin
-let _test_success_set_admin = (_: unit) : unit => {
+const _test_success_set_admin = (_: unit) : unit => {
     let [tok, admin, owners] = bootstrap();
     let [owner1, _, _] = owners;
     let [owner1_addr, _, _] = owner1;
@@ -29,7 +29,7 @@ let _test_success_set_admin = (_: unit) : unit => {
 };
 
 // Failure because sender is not current admin
-let _test_failure_not_admin = (_: unit) : unit => {
+const _test_failure_not_admin = (_: unit) : unit => {
     let [tok,_, owners] = bootstrap();
     let [owner1, _, _] = owners;
     let [owner1_addr, _, _] = owner1;

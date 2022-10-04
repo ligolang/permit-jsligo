@@ -6,17 +6,16 @@ type common_storage = {
     operators : Token.FA2.Operators.t
 }
 
-let dummy_token_info = (Map.empty as map<string, bytes>);
+const dummy_token_info = (Map.empty as map<string, bytes>);
 
-export let get_dummy_token_data = (token_id : nat) : Token.FA2.TokenMetadata.data => {
+export const get_dummy_token_data = (token_id : nat) : Token.FA2.TokenMetadata.data => {
    return { token_id: token_id, token_info: dummy_token_info};
 };
 
 
 // Get the initial storage of FA2
 // init_tok_amount is the amount of token allocated to every owner account
-
-export let get_initial_storage = ([owners, ops, init_tok_amount]
+export const get_initial_storage = ([owners, ops, init_tok_amount]
 : [[address, address,  address], [address, address, address], nat]) : common_storage => {
     let [owner1, owner2, owner3] = owners;
     let [op1, _op2, op3] = ops;

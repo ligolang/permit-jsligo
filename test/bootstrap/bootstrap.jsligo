@@ -6,9 +6,9 @@
 const dummy_genesis_ts = ("2000-01-01t10:10:10Z" as timestamp);
 
 
-    // Boostrapping of the test environment,
-    // init_ts is the initial timestamp of the genesis block
-export let boot_state = (init_ts : timestamp) : 
+// Boostrapping of the test environment,
+// init_ts is the initial timestamp of the genesis block
+export const boot_state = (init_ts : timestamp) : 
     [address, 
     [address, address, address], 
     [[address, key, string], [address, key, string], [address, key, string]],
@@ -36,18 +36,17 @@ export let boot_state = (init_ts : timestamp) :
     [admin, owners, owners_with_keys, ops]
 };
 
-    // Bootstrapping of the contract under test,
-    // init_tok_amount is the amount of token allocated to every
-    // bootstrapped accounts
-
-export let boot_token = ([owners, ops, init_tok_amount, init_extended_storage]
-: [[address, address, address], [address, address, address], nat, Token.Extension.t]) : Token_helper.originated => {
+// Bootstrapping of the contract under test,
+// init_tok_amount is the amount of token allocated to every
+// bootstrapped accounts
+export const boot_token = ([owners, ops, init_tok_amount, init_extended_storage]
+: [[address, address, address], [address, address, address], nat, Token.extension]) : Token_helper.originated => {
     let initial_fa2_storage = FA2_helper.get_initial_storage(
         owners, ops, init_tok_amount
     );
 
     // supply matching initial ledger 
-    let supply : Token.Extension.TokenTotalSupply.t = Big_map.literal( list([
+    let supply : Token.TokenTotalSupply.t = Big_map.literal( list([
        [(1 as nat), init_tok_amount],
        [(2 as nat), (init_tok_amount * (2 as nat))],
        [(3 as nat), init_tok_amount]
@@ -61,9 +60,8 @@ export let boot_token = ([owners, ops, init_tok_amount, init_extended_storage]
         ledger         : initial_fa2_storage.ledger,
         token_metadata : initial_fa2_storage.token_metadata,
         operators      : initial_fa2_storage.operators,
-        extension      : { ...init_extended_storage, tokenTotalSupply : supply }
+        extension      : { ...init_extended_storage, extension : supply }
     };
 
-    //Token_helper.originate(init_storage)
     Token_helper.originateFromFile(init_storage);
 };

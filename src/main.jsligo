@@ -12,7 +12,7 @@ export type storage = gen_storage<token_total_supply>
 type result = [list<operation>, storage]
 
 type gen_extension = Extension.t
-type extension = gen_extension<token_total_supply>
+export type extension = gen_extension<token_total_supply>
 
 export type mintOrBurn = 
 // @layout:comb
