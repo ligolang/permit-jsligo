@@ -16,12 +16,7 @@ must be done by a third-party
 ## Requirements
 
 The contract is written in `jsligo` flavour of [LigoLANG](https://ligolang.org/),
-to be able to compile the contract, you need either:
-
-- a [ligo binary](https://ligolang.org/docs/intro/installation#static-linux-binary),
-  in this case, to use the binary, you need to have set up a `LIGO` environment variable,
-  pointing to the binary (see [Makefile](./Makefile))
-- or [docker](https://docs.docker.com/engine/install/)
+to be able to compile the contract, you need either a [ligo binary](https://ligolang.org/docs/intro/installation#static-linux-binary), or [docker](https://docs.docker.com/engine/install/).
 
 For deploy scripts, you also need to have [nodejs](https://nodejs.org/en/) installed,
 up to version 14 and docker if you wish to deploy on a sandbox.
@@ -30,6 +25,10 @@ up to version 14 and docker if you wish to deploy on a sandbox.
 
 1. Run `make install` to install dependencies
 2. Run `make` to see available commands
+3. You can also override `make` parameters by running :
+```sh
+make compile ligo_compiler=<LIGO_EXECUTABLE> PROTOCOL_OPT="--protocol <PROTOCOL>"
+```
 
 ## Use case: taco shop loyalty program
 

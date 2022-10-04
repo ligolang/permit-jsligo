@@ -4,12 +4,12 @@
 #import "./bootstrap/bootstrap.jsligo" "Bootstrap"
 #import "../src/main.jsligo" "Token"
 
-let _ = Log.describe("[Transfer] test suite");
+const _ = Log.describe("[Transfer] test suite");
 
 // Boostrapping of the test environment
-let init_tok_amount = (10 as nat);
+const init_tok_amount = (10 as nat);
 
-let bootstrap = ([init_ts, initDefaultExpiry, initMaxExpiry] : [timestamp, nat, nat]) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
+const bootstrap = ([init_ts, initDefaultExpiry, initMaxExpiry] : [timestamp, nat, nat]) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(init_ts);
     let base_extended_storage = Token_helper.getInitialExtendedStorage(admin, initDefaultExpiry, initMaxExpiry);
     let tok = Bootstrap.boot_token(owners, ops, init_tok_amount, base_extended_storage);
@@ -17,7 +17,7 @@ let bootstrap = ([init_ts, initDefaultExpiry, initMaxExpiry] : [timestamp, nat, 
 };
 
 // Successful transfer with permit
-let _test_success = () : unit => {
+const _test_success = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), (3600 as nat), (7200 as nat));
     let [owner1, owner2, _] = owners;
     let [owner1_addr, _, _] = owner1;
@@ -38,7 +38,7 @@ let _test_success = () : unit => {
 };
 
 // Successful with permit expired but sender is operator
-let _test_success_by_operator_with_expired_permit = () : unit => {
+const _test_success_by_operator_with_expired_permit = () : unit => {
     let initDefaultExpiry = 86_400 as nat;
     let initMaxExpiry = 259_200 as nat;
     let now = ("2000-01-03t10:10:10Z" as timestamp);
@@ -71,7 +71,7 @@ let _test_success_by_operator_with_expired_permit = () : unit => {
 };
 
 // Failing because the permit has expired
-let _test_failure_expired_permit = () : unit => {
+const _test_failure_expired_permit = () : unit => {
     let initDefaultExpiry = 86_400 as nat;
     let initMaxExpiry = 259_200 as nat;
     let now = ("2000-01-03t10:10:10Z" as timestamp);

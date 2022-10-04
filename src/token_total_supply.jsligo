@@ -2,7 +2,6 @@
 
 export type t = big_map<FA2.Ledger.token_id, nat>;
 
-
 const getSupply = ([supply, tokenId] : [t, FA2.Ledger.token_id]) : nat =>
     match (Big_map.find_opt(tokenId, supply), { 
         Some: (a: nat) => a,
@@ -24,4 +23,3 @@ export const decreaseSupply = ([supply, tokenId, amount_] : [t, FA2.Ledger.token
     let newSupply = abs(curAmount - amount_);
     Big_map.update(tokenId, (Some(newSupply)), supply);
 };
- 

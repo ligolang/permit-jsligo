@@ -3,11 +3,20 @@
 #import "./storage.jsligo" "Storage"
 #import "./extension.jsligo" "Extension"
 #import "./errors.jsligo" "Errors"
+#import "./token_total_supply.jsligo" "TokenTotalSupply"
 
-export type storage = Storage.t
+type gen_storage = Storage.t
+type token_total_supply = TokenTotalSupply.t
+export type storage = gen_storage<token_total_supply>
+
 type result = [list<operation>, storage]
 
-export type mintOrBurn = [@layout:comb] {
+type gen_extension = Extension.t
+export type extension = gen_extension<token_total_supply>
+
+export type mintOrBurn = 
+// @layout:comb
+{
    owner    : address,
    tokenId : nat,
    amount_  : nat,
@@ -23,13 +32,13 @@ const create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], stor
     let s = Storage.setTokenMetadata(s, md);
     let ledger = FA2.Ledger.increase_token_amount_for_user(s.ledger)(owner)(metadata.token_id)(amount);
     let newStore = FA2.Storage.set_ledger(s)(ledger);
-    let supply = Extension.TokenTotalSupply.createSupply(newStore.extension.tokenTotalSupply, metadata.token_id, amount);
-    [Constants.noOperation, { ...newStore, extension : Extension.setSupply(s.extension, supply) }]
+    let supply = TokenTotalSupply.createSupply(newStore.extension.extension, metadata.token_id, amount);
+    [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
     Extension.assertAdmin(s.extension);
-    let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
+    let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, TokenTotalSupply.t] => {
         let [ledger,supply] = ledgerAndSupply;
         let {owner,tokenId,amount_} = paramMint;
         FA2.Storage.assert_token_exist(s)(tokenId);
@@ -38,9 +47,9 @@ const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
             Extension.TokenTotalSupply.increaseSupply(supply, tokenId, amount_)
         ]
     };
-    let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.tokenTotalSupply], lst);
+    let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
     let s = FA2.Storage.set_ledger(s)(ledger);
-    [Constants.noOperation, { ...s, extension : Extension.setSupply(s.extension, supply) }]
+    [Constants.noOperation, { ...s, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
@@ -53,14 +62,14 @@ const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
         Extension.TokenTotalSupply.decreaseSupply(supply, tokenId, amount_)
       ]
     };
-   let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.tokenTotalSupply], lst);
+   let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
    let s = FA2.Storage.set_ledger(s)(ledger);
-   [Constants.noOperation,{ ...s, extension : Extension.setSupply(s.extension, supply) }]
+   [Constants.noOperation,{ ...s, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 // TZIP-17
 const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
-    let processPermit = ([ext, permit] : [Extension.t, permitParams]) : Extension.t => {
+    let processPermit = ([ext, permit] : [extension, permitParams]) : extension => {
         let [pub_key, [sig, hash_]] = permit;
         let packed = Bytes.pack ([(Tezos.get_chain_id()), Tezos.get_self_address()], [ext.counter, hash_]);
         if (Crypto.check(pub_key, sig, packed)) {
@@ -77,7 +86,7 @@ const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
             });
             return extModified;
         } else {
-            return (Michelson `{FAILWITH}` as ((n: [string, bytes]) => Extension.t)) ([Errors.missigned, packed])
+            return (Michelson `{FAILWITH}` as ((n: [string, bytes]) => extension)) ([Errors.missigned, packed])
         }
     };
     let extension = List.fold_left(processPermit, s.extension, permits);
@@ -112,7 +121,7 @@ const setExpiry = ([p, s] : [expiryParams, storage]) : result => {
 
 // TZIP-17 implementation of TZIP-12 Transfer
 const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
-     let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, Extension.t], FA2.transfer_from]) : [FA2.Ledger.t, Extension.t] => {
+     let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, extension], FA2.transfer_from]) : [FA2.Ledger.t, extension] => {
         let [ledger, ext] = acc;
         let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
         let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash]; 
