@@ -1,4 +1,4 @@
-# permit-cameligo
+# permit-jsligo
 
 This example contract implements an FA2 multi-asset contract with a
 [TZIP-17](https://tzip.tezosagora.org/proposal/tzip-17/) extension.
