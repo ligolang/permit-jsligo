@@ -165,15 +165,15 @@ export type parameter =
 
 export const main = ([p,s]: [parameter, storage]): result => {
     return match (p, {
-        Transfer:         (p: FA2.transfer) => transferPermitted(p,s),
-        Balance_of:       (p: FA2.balance_of) => FA2.balance_of(p)(s),
-        Update_operators: (p: FA2.update_operators) => FA2.update_ops(p)(s),
-        Create_token:     (p: [create_token, address, nat]) => create(p, s),
-        Mint_token:       (p: list<mintOrBurn>) => mint(p, s),
-        Burn_token:       (p: list<mintOrBurn>) => burn(p, s),
-        Permit:           (p: list<permitParams>) => permit(p, s),
-        SetExpiry:        (p: expiryParams) => setExpiry(p, s),
-        SetAdmin:         (p: address) => setAdmin(p, s)
+        Transfer:         p => transferPermitted(p,s),
+        Balance_of:       p => FA2.balance_of(p)(s),
+        Update_operators: p => FA2.update_ops(p)(s),
+        Create_token:     p => create(p, s),
+        Mint_token:       p => mint(p, s),
+        Burn_token:       p => burn(p, s),
+        Permit:           p => permit(p, s),
+        SetExpiry:        p => setExpiry(p, s),
+        SetAdmin:         p => setAdmin(p, s)
     })
 };
 
