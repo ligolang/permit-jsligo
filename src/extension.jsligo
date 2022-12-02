@@ -35,7 +35,7 @@ const getExpiry : <T>((ext: t<T>, paramPermitKey: permitKey) => seconds) =
                     Some: exp => {
                         match (exp, {
                             None: () => ext.defaultExpiry,
-                            Some: (t: seconds) => t
+                            Some: t => t
                         })
                     }
                 })
