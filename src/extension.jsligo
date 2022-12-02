@@ -32,7 +32,7 @@ const getExpiry : <T>((ext: t<T>, paramPermitKey: permitKey) => seconds) =
         None: () => {
                 match ((Big_map.find_opt(paramPermitKey[0], ext.userExpiries) as option<option<seconds>>), {
                     None: () => ext.defaultExpiry,
-                    Some: (exp: option<seconds>) => {
+                    Some: exp => {
                         match (exp, {
                             None: () => ext.defaultExpiry,
                             Some: (t: seconds) => t
