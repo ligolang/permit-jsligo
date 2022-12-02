@@ -22,7 +22,7 @@ const get_user_defined_expiry : <T>((from_: address, ext: t<T>) => option<second
 (from_: address, ext: t<T>) => {
     return match (Big_map.find_opt(from_, ext.userExpiries), {
         None: () => (Some(ext.defaultExpiry)),
-        Some: (exp: option<seconds>) => exp
+        Some: exp => exp
     });
 };
 
