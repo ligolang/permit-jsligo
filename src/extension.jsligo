@@ -108,8 +108,8 @@ export const transferPresigned : <T>((ext: t<T>, paramPermitKey: permitKey) => [
                 Some: (exp: option<seconds>) => exp
             });
         return match (effectiveExpiry, {
-            None: () => (failwith(Errors.missingExpiry) as [bool, t<T>]),
-            Some: (effective_exp: seconds) => {  
+            None: () => failwith(Errors.missingExpiry),
+            Some: effective_exp => {  
                 let permits = Big_map.remove(paramPermitKey, ext.permits);
                 let isAuthorised = abs ((Tezos.get_now()) - permitSubmitTime) < effective_exp;
                 [isAuthorised, { ...ext, permits : permits }]
