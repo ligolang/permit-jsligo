@@ -102,7 +102,7 @@ export const transferPresigned : <T>((ext: t<T>, paramPermitKey: permitKey) => [
                 None: () => {
                     match (Big_map.find_opt(paramPermitKey[0], ext.userExpiries), {
                         None: () => (Some(ext.defaultExpiry)),
-                        Some: (exp: option<seconds>) => exp
+                        Some: exp => exp
                     })
                 },
                 Some: (exp: option<seconds>) => exp
