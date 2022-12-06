@@ -24,7 +24,7 @@ const _test_success_add_permit_one = () : unit => {
     let [owner2_addr, _, _] = owner2;
     let transfer_requests : Token.FA2.transfer = list([{
                 from_:owner1_addr,
-                tx: (list([{
+                txs: (list([{
                     to_:owner2_addr,
                     amount:(2 as nat),
                     token_id:(1 as nat)}]) as list<Token.FA2.atomic_trans>)
@@ -45,7 +45,7 @@ const _test_success_add_permit_list = () : unit => {
     let transfer_requests : Token.FA2.transfer = list([
         {
             from_: owner1_addr, 
-            tx: list([
+            txs: list([
                 {to_:owner2_addr, amount:2 as nat, token_id:1 as nat}
             ])
         }
@@ -55,7 +55,7 @@ const _test_success_add_permit_list = () : unit => {
     let transfer_requests2 : Token.FA2.transfer = list([
         {   
             from_:owner2_addr, 
-            tx: list([
+            txs: list([
                 { to_:owner1_addr, amount:(2 as nat), token_id:(1 as nat)}
             ])
         }
@@ -80,7 +80,7 @@ const _test_success_update_permit = () : unit => {
     let [owner2_addr, _, _] = owner2;
 
     let transfer_requests : Token.FA2.transfer = list([
-        ({from_: owner1_addr, tx: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
+        ({from_: owner1_addr, txs: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
     ]);
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_requests));
 
@@ -105,7 +105,7 @@ const _test_success_update_permit_already_exist = () : unit => {
     let [owner1_addr, _, _] = owner1;
     let [owner2_addr, _, _] = owner2;
     let transfer_requests : Token.FA2.transfer = list([
-        ({from_:owner1_addr, tx: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
+        ({from_:owner1_addr, txs: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
     ]);
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_requests));
     let permit = Token_helper.makePermit(hash_, owner1, tok.addr,(0 as nat));
