@@ -24,7 +24,7 @@ const _test_success = () : unit => {
     let [owner2_addr, _, _] = owner2;
     let transfer_request : Token.FA2.transfer_from = {
         from_:owner1_addr,
-        tx:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
+        txs:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
     };
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_request));
     let permit = Token_helper.makePermit(hash_, owner1, tok.addr, (0 as nat));
@@ -52,7 +52,7 @@ const _test_success_by_operator_with_expired_permit = () : unit => {
 
     let transfer_request : Token.FA2.transfer_from = {
         from_:owner1_addr,
-        tx:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
+        txs:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
     };
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_request));
 
@@ -84,7 +84,7 @@ const _test_failure_expired_permit = () : unit => {
 
     let transfer_request = ({
         from_:owner1_addr,
-        tx:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
+        txs:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
     });
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_request));
 

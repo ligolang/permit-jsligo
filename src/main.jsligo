@@ -1,4 +1,4 @@
-#import "ligo-generic-fa2/lib/multi_asset/fa2.mligo" "FA2"
+#import "ligo-extendable-fa2/lib/multi_asset/fa2.mligo" "FA2"
 #import "./constants.jsligo" "Constants"
 #import "./storage.jsligo" "Storage"
 #import "./extension.jsligo" "Extension"
@@ -126,7 +126,7 @@ const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
         let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
         let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash]; 
         const [isTransferAuthorized, ext] = Extension.transferPresigned(ext, permitKey);
-        const {from_, tx} = transferFrom;
+        const {from_, txs} = transferFrom;
         let applyTransfer = ([ledger, dst] : [FA2.Ledger.t, FA2.atomic_trans]) : FA2.Ledger.t => {
             let {token_id, amount, to_} = dst;
             FA2.Storage.assert_token_exist(s)(token_id);
@@ -141,7 +141,7 @@ const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
                 return ledgerFinal
             }
         };
-        let ledger = List.fold(applyTransfer, tx, ledger);
+        let ledger = List.fold(applyTransfer, txs, ledger);
         [ledger, ext]
     };
     let [newLedger, newExt] = List.fold(makeTransfer, transfer, [s.ledger, s.extension]);
