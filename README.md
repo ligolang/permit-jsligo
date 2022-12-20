@@ -11,7 +11,7 @@ Permits have 2 main use cases:
 
 - making gasless transaction
 - avoiding manipulating operators (FA2) or allowances (FA1.2) when a transaction
-must be done by a third-party
+  must be done by a third-party
 
 ## Requirements
 
@@ -24,15 +24,17 @@ up to version 14 and docker if you wish to deploy on a sandbox.
 ## Usage
 
 1. Run `make install` to install dependencies
-2. Run `make` to see available commands
-3. You can also override `make` parameters by running :
-```sh
+2. Run `make compile` to compile the contracts
+3. Run `make deploy` to deploy the contracts. You need to rename `deploy/.env.dist` to `deploy/.env` and **fill the required variables**.
+
+You can also override `make` parameters by running :
+
+````sh
 make compile ligo_compiler=<LIGO_EXECUTABLE> PROTOCOL_OPT="--protocol <PROTOCOL>"
-```
 
 ## Use case: taco shop loyalty program
 
-A potential use case is the digitalization of the good old loyalty card.  
+A potential use case is the digitalization of the good old loyalty card.
 
 ### Loyalty Token creation
 
@@ -45,7 +47,7 @@ sequenceDiagram
   participant FA2
   Note left of Pedro: Pedro create a token
   Pedro->>FA2: Create_token
-```
+````
 
 ### Token distribution
 
@@ -116,11 +118,11 @@ Additionally, for the use case presentation, 3 entrypoints have been added:
 
 ## Smart Contract Data Types
 
-``` mermaid
+```mermaid
 classDiagram
     Permit <|-- Storage
     UserExpiry <|-- Storage
-    PermitExpiry <|-- Storage 
+    PermitExpiry <|-- Storage
 
     class Storage {
         defaultExpiry: nat
