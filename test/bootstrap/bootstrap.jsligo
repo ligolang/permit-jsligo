@@ -33,7 +33,7 @@ export const boot_state = (init_ts : timestamp) :
         Test.nth_bootstrap_account(4),
         Test.nth_bootstrap_account(5)];
 
-    [admin, owners, owners_with_keys, ops]
+    return [admin, owners, owners_with_keys, ops]
 };
 
 // Bootstrapping of the contract under test,
@@ -63,5 +63,5 @@ export const boot_token = ([owners, ops, init_tok_amount, init_extended_storage]
         extension      : { ...init_extended_storage, extension : supply }
     };
 
-    Token_helper.originateFromFile(init_storage);
+    return Token_helper.originateFromFile(init_storage);
 };

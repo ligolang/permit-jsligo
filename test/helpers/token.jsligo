@@ -63,7 +63,7 @@ export const makePermit = ([hash_, account, token_addr, counter] : [bytes, [addr
     let [_, pubKey, secretKey] = account;
     let packed = Bytes.pack ([0x00000000, token_addr], [counter, hash_]);
     let sig = Test.sign(secretKey, packed);
-    [pubKey, [sig, hash_]]
+    return [pubKey, [sig, hash_]]
 };
 
 // Call entry point of Token contr contract
@@ -81,12 +81,11 @@ export const setAdmin = ([p, contr] : [address, contr]) : test_exec_result =>
 
 export const transfer = ([p, contr] : [Token.FA2.transfer, contr]) : test_exec_result => {
     let p : Token.parameter = Transfer(p);
-    call(p, contr)
+    return call(p, contr)
 };
 
-export const createToken = ([md, owner, amount, contr] : [Token.FA2.TokenMetadata.data, address, nat, contr]) : test_exec_result => {
-    call(Create_token([md, owner, amount]), contr)
-};
+export const createToken = ([md, owner, amount, contr] : [Token.FA2.TokenMetadata.data, address, nat, contr]) : test_exec_result =>
+    call(Create_token([md, owner, amount]), contr);
 
 export const mintToken = ([p, contr] : [list<Token.mintOrBurn>, contr]) : test_exec_result =>
     call(Mint_token(p), contr)

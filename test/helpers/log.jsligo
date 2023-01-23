@@ -7,7 +7,7 @@ const repeat = ([str, n] : [string, nat]) : string => {
             return loop (abs(n - (1 as nat)), acc + str)
         }
     };
-    loop(n, "")
+    return loop(n, "")
 };
  
     // Log boxed lbl

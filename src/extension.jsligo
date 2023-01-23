@@ -28,12 +28,12 @@ const get_user_defined_expiry : <T>((from_: address, ext: t<T>) => option<second
 
 const getExpiry : <T>((ext: t<T>, paramPermitKey: permitKey) => seconds) = 
 (ext: t<T>, paramPermitKey: permitKey) => {
-    match ((Big_map.find_opt([paramPermitKey[0], paramPermitKey[1]], ext.permitExpiries) as option<option<seconds>>), {
+    return match ((Big_map.find_opt([paramPermitKey[0], paramPermitKey[1]], ext.permitExpiries) as option<option<seconds>>), {
         None: () => {
-                match ((Big_map.find_opt(paramPermitKey[0], ext.userExpiries) as option<option<seconds>>), {
+                return match ((Big_map.find_opt(paramPermitKey[0], ext.userExpiries) as option<option<seconds>>), {
                     None: () => ext.defaultExpiry,
                     Some: exp => {
-                        match (exp, {
+                        return match (exp, {
                             None: () => ext.defaultExpiry,
                             Some: t => t
                         })
@@ -41,7 +41,7 @@ const getExpiry : <T>((ext: t<T>, paramPermitKey: permitKey) => seconds) =
                 })
             },
         Some: (p: option<seconds>) => {
-                match (p, {
+                return match (p, {
                     None: () => ext.defaultExpiry,
                     Some: exp => exp
                 })
@@ -100,7 +100,7 @@ export const transferPresigned : <T>((ext: t<T>, paramPermitKey: permitKey) => [
         let effectiveExpiry =
             match (Big_map.find_opt(paramPermitKey, ext.permitExpiries), {
                 None: () => {
-                    match (Big_map.find_opt(paramPermitKey[0], ext.userExpiries), {
+                    return match (Big_map.find_opt(paramPermitKey[0], ext.userExpiries), {
                         None: () => (Some(ext.defaultExpiry)),
                         Some: exp => exp
                     })
@@ -112,7 +112,7 @@ export const transferPresigned : <T>((ext: t<T>, paramPermitKey: permitKey) => [
             Some: effective_exp => {  
                 let permits = Big_map.remove(paramPermitKey, ext.permits);
                 let isAuthorised = abs ((Tezos.get_now()) - permitSubmitTime) < effective_exp;
-                [isAuthorised, { ...ext, permits : permits }]
+                return [isAuthorised, { ...ext, permits : permits }]
             }
         });
     }

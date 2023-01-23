@@ -21,7 +21,7 @@ export const tx_success = (res: test_exec_result) : unit => {
             match (x, {
                 Rejected: (x:[michelson_code,address]) => {
                     Test.log(x[0]);
-                    Test.failwith("Transaction should not fail")
+                    return Test.failwith("Transaction should not fail")
                 },
                 Balance_too_low: (_: unit) => Test.failwith("Transaction should not fail"),
                 Other: (_: unit) => Test.failwith("Transaction should not fail")

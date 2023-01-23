@@ -13,7 +13,7 @@ const bootstrap = ([init_ts, initDefaultExpiry, initMaxExpiry] : [timestamp, nat
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(init_ts);
     let base_extended_storage = Token_helper.getInitialExtendedStorage(admin, initDefaultExpiry, initMaxExpiry);
     let tok = Bootstrap.boot_token(owners, ops, init_tok_amount, base_extended_storage);
-    [tok, admin, owners_with_keys]
+    return [tok, admin, owners_with_keys]
 };
 
 // Successful setting of user expiry
