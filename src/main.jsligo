@@ -33,7 +33,7 @@ const create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], stor
     let ledger = FA2.Ledger.increase_token_amount_for_user(s.ledger)(owner)(metadata.token_id)(amount);
     let newStore = FA2.Storage.set_ledger(s)(ledger);
     let supply = TokenTotalSupply.createSupply(newStore.extension.extension, metadata.token_id, amount);
-    [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
+    return [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
@@ -42,14 +42,14 @@ const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
         let [ledger,supply] = ledgerAndSupply;
         let {owner,tokenId,amount_} = paramMint;
         FA2.Storage.assert_token_exist(s)(tokenId);
-        [
+        return [
             FA2.Ledger.increase_token_amount_for_user(ledger)(owner)(tokenId)(amount_),
             Extension.TokenTotalSupply.increaseSupply(supply, tokenId, amount_)
         ]
     };
     let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
     let s = FA2.Storage.set_ledger(s)(ledger);
-    [Constants.noOperation, { ...s, extension : Extension.setExtension(s.extension, supply) }]
+    return [Constants.noOperation, { ...s, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
@@ -57,14 +57,14 @@ const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
    let processOne = ([ledgerAndSupply, paramBurn] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
       let [ledger,supply] = ledgerAndSupply;
       let {owner,tokenId,amount_} = paramBurn;
-      [
+      return [
         FA2.Ledger.decrease_token_amount_for_user(ledger)(owner)(tokenId)(amount_),
         Extension.TokenTotalSupply.decreaseSupply(supply, tokenId, amount_)
       ]
     };
    let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
    let s = FA2.Storage.set_ledger(s)(ledger);
-   [Constants.noOperation,{ ...s, extension : Extension.setExtension(s.extension, supply) }]
+   return [Constants.noOperation,{ ...s, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 // TZIP-17
@@ -77,11 +77,11 @@ const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
             let paramPermitKey = [sender_, hash_];
             let extModified = match (Big_map.find_opt(paramPermitKey, ext.permits), {
                 None: () => {
-                    Extension.addPermit(ext, paramPermitKey)
+                    return Extension.addPermit(ext, paramPermitKey)
                 },
                 Some: (submission_timestamp: timestamp) => {
                     Extension._checkNotExpired(s.extension, submission_timestamp, paramPermitKey);
-                    Extension.updatePermit(ext, paramPermitKey)
+                    return Extension.updatePermit(ext, paramPermitKey)
                 }
             });
             return extModified;
@@ -90,7 +90,7 @@ const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
         }
     };
     let extension = List.fold_left(processPermit, s.extension, permits);
-    [Constants.noOperation, { ...s, extension : extension }]
+    return [Constants.noOperation, { ...s, extension : extension }]
 };
 
 // TZIP-17
@@ -98,7 +98,7 @@ const setExpiry = ([p, s] : [expiryParams, storage]) : result => {
     let [userAddress, [seconds, permitHashOpt]] = p;
     let _checkMaxExpiry : unit = assert_with_error((seconds <= s.extension.maxExpiry), Errors.maxSecondsExceeded);
     let _checkSender : unit = assert_with_error((Tezos.get_sender() == userAddress), Errors.forbiddenExpiryUpdate);
-    match (permitHashOpt, {
+    return match (permitHashOpt, {
         None: () => {
             return [
                 Constants.noOperation,
@@ -142,14 +142,14 @@ const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
             }
         };
         let ledger = List.fold(applyTransfer, txs, ledger);
-        [ledger, ext]
+        return [ledger, ext]
     };
     let [newLedger, newExt] = List.fold(makeTransfer, transfer, [s.ledger, s.extension]);
-    [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
+    return [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
 };
 
 const setAdmin = ([addr, s]: [address, storage]) : result => { 
-    [Constants.noOperation, { ...s, extension : Extension.setAdmin(s.extension, addr) }]
+    return [Constants.noOperation, { ...s, extension : Extension.setAdmin(s.extension, addr) }]
 };
 
 export type parameter = 

@@ -17,5 +17,5 @@ export const setTokenMetadata : <T>((s: t<T>, token_metadata: FA2.TokenMetadata.
 
 export const addNewToken = ([md, tokenId, data]: [FA2.TokenMetadata.t, nat, FA2.TokenMetadata.data]) : FA2.TokenMetadata.t => {
     assert_with_error((! (Big_map.mem(tokenId, md))), Errors.tokenExist);
-    Big_map.add(tokenId, data, md);
+    return Big_map.add(tokenId, data, md);
 };

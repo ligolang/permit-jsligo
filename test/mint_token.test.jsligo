@@ -15,7 +15,7 @@ const bootstrap = () : [Token_helper.originated, address, [[address, key, string
     let base_extended_storage = Token_helper.getInitialExtendedStorage(
       admin, Token_helper.dummyDefaultExpiry, Token_helper.dummyMaxExpiry);
     let tok = Bootstrap.boot_token(owners, ops, init_tok_amount, base_extended_storage);
-    [tok, admin, owners_with_keys]
+    return [tok, admin, owners_with_keys]
 };
 
 // Successful token mint
