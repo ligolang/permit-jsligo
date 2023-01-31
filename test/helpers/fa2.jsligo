@@ -15,8 +15,7 @@ export const get_dummy_token_data = (token_id : nat) : Token.FA2.TokenMetadata.d
 
 // Get the initial storage of FA2
 // init_tok_amount is the amount of token allocated to every owner account
-export const get_initial_storage = ([owners, ops, init_tok_amount]
-: [[address, address,  address], [address, address, address], nat]) : common_storage => {
+export const get_initial_storage = (owners: [address, address,  address], ops: [address, address, address], init_tok_amount: nat) : common_storage => {
     let [owner1, owner2, owner3] = owners;
     let [op1, _op2, op3] = ops;
 

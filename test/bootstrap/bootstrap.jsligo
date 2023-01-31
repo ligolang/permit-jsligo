@@ -39,8 +39,7 @@ export const boot_state = (init_ts : timestamp) :
 // Bootstrapping of the contract under test,
 // init_tok_amount is the amount of token allocated to every
 // bootstrapped accounts
-export const boot_token = ([owners, ops, init_tok_amount, init_extended_storage]
-: [[address, address, address], [address, address, address], nat, Token.extension]) : Token_helper.originated => {
+export const boot_token = (owners: [address, address, address], ops: [address, address, address], init_tok_amount: nat, init_extended_storage: Token.extension) : Token_helper.originated => {
     let initial_fa2_storage = FA2_helper.get_initial_storage(
         owners, ops, init_tok_amount
     );
