@@ -9,7 +9,7 @@ const _ = Log.describe("[Transfer] test suite");
 // Boostrapping of the test environment
 const init_tok_amount = (10 as nat);
 
-const bootstrap = ([init_ts, initDefaultExpiry, initMaxExpiry] : [timestamp, nat, nat]) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
+const bootstrap = (init_ts: timestamp, initDefaultExpiry: nat, initMaxExpiry: nat) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(init_ts);
     let base_extended_storage = Token_helper.getInitialExtendedStorage(admin, initDefaultExpiry, initMaxExpiry);
     let tok = Bootstrap.boot_token(owners, ops, init_tok_amount, base_extended_storage);

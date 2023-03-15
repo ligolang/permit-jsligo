@@ -6,16 +6,16 @@ type storage = FA2.storage;
 type extension = Extension.t;
 export type t<a> = storage<extension<a>>;
 
-const getTokenMetadata : <T>((s: t<T>) => FA2.TokenMetadata.t) = (s: t<T>) => {
+const getTokenMetadata = <T>(s: t<T>): FA2.TokenMetadata.t => {
     return s.token_metadata
 };
 
-export const setTokenMetadata : <T>((s: t<T>, token_metadata: FA2.TokenMetadata.t) => t<T>) = 
-(s: t<T>, token_metadata: FA2.TokenMetadata.t) => {
+export const setTokenMetadata = 
+<T>(s: t<T>, token_metadata: FA2.TokenMetadata.t): t<T> => {
     return {...s, token_metadata : token_metadata }
 };
 
-export const addNewToken = ([md, tokenId, data]: [FA2.TokenMetadata.t, nat, FA2.TokenMetadata.data]) : FA2.TokenMetadata.t => {
+export const addNewToken = (md: FA2.TokenMetadata.t, tokenId: nat, data: FA2.TokenMetadata.data) : FA2.TokenMetadata.t => {
     assert_with_error((! (Big_map.mem(tokenId, md))), Errors.tokenExist);
     return Big_map.add(tokenId, data, md);
 };

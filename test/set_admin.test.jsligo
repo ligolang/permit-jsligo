@@ -9,7 +9,7 @@ const _ = Log.describe("[Set_admin] test suite");
 // Boostrapping of the test environment
 const init_tok_amount = (10 as nat);
 
-const bootstrap = (_: unit) : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
+const bootstrap = () : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(Bootstrap.dummy_genesis_ts);
     let base_extended_storage = Token_helper.getInitialExtendedStorage(
       admin, Token_helper.dummyDefaultExpiry, Token_helper.dummyMaxExpiry);

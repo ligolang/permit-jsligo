@@ -25,7 +25,7 @@ export type mintOrBurn =
 export type permitParams = [key, [signature, bytes]];
 export type expiryParams = [address, [nat, option<bytes>]];
 
-const create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], storage]) : result => {
+const create = (paramCreate: [FA2.TokenMetadata.data, address, nat], s: storage) : result => {
     let [metadata,owner,amount] = paramCreate;
     Extension.assertAdmin(s.extension);
     let md = Storage.addNewToken(s.token_metadata, metadata.token_id, metadata);
@@ -36,7 +36,7 @@ const create = ([paramCreate, s] : [[FA2.TokenMetadata.data, address, nat], stor
     return [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
 };
 
-const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
+const mint = (lst: list<mintOrBurn>, s: storage) : result => {
     Extension.assertAdmin(s.extension);
     let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, TokenTotalSupply.t] => {
         let [ledger,supply] = ledgerAndSupply;
@@ -52,7 +52,7 @@ const mint = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
     return [Constants.noOperation, { ...s, extension : Extension.setExtension(s.extension, supply) }]
 };
 
-const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
+const burn = (lst: list<mintOrBurn>, s: storage) : result => {
    Extension.assertAdmin(s.extension);
    let processOne = ([ledgerAndSupply, paramBurn] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
       let [ledger,supply] = ledgerAndSupply;
@@ -68,10 +68,10 @@ const burn = ([lst, s] : [list<mintOrBurn>, storage]) : result => {
 };
 
 // TZIP-17
-const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
+const permit = (permits: list<permitParams>, s: storage) : result => {
     let processPermit = ([ext, permit] : [extension, permitParams]) : extension => {
         let [pub_key, [sig, hash_]] = permit;
-        let packed = Bytes.pack ([(Tezos.get_chain_id()), Tezos.get_self_address()], [ext.counter, hash_]);
+        let packed = Bytes.pack ([[(Tezos.get_chain_id()), Tezos.get_self_address()], [ext.counter, hash_]]);
         if (Crypto.check(pub_key, sig, packed)) {
             let sender_ = Tezos.address (Tezos.implicit_account (Crypto.hash_key(pub_key)));
             let paramPermitKey = [sender_, hash_];
@@ -94,7 +94,7 @@ const permit = ([permits, s] : [list<permitParams>, storage]) : result => {
 };
 
 // TZIP-17
-const setExpiry = ([p, s] : [expiryParams, storage]) : result => {
+const setExpiry = (p: expiryParams, s: storage) : result => {
     let [userAddress, [seconds, permitHashOpt]] = p;
     let _checkMaxExpiry : unit = assert_with_error((seconds <= s.extension.maxExpiry), Errors.maxSecondsExceeded);
     let _checkSender : unit = assert_with_error((Tezos.get_sender() == userAddress), Errors.forbiddenExpiryUpdate);
@@ -120,7 +120,7 @@ const setExpiry = ([p, s] : [expiryParams, storage]) : result => {
 };
 
 // TZIP-17 implementation of TZIP-12 Transfer
-const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
+const transferPermitted = (transfer: FA2.transfer, s: storage) : result => {
      let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, extension], FA2.transfer_from]) : [FA2.Ledger.t, extension] => {
         let [ledger, ext] = acc;
         let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
@@ -148,7 +148,7 @@ const transferPermitted = ([transfer, s]: [FA2.transfer, storage]) : result => {
     return [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
 };
 
-const setAdmin = ([addr, s]: [address, storage]) : result => { 
+const setAdmin = (addr: address, s: storage) : result => { 
     return [Constants.noOperation, { ...s, extension : Extension.setAdmin(s.extension, addr) }]
 };
 
@@ -163,7 +163,7 @@ export type parameter =
     ["SetExpiry", expiryParams] |
     ["SetAdmin", address];
 
-export const main = ([p,s]: [parameter, storage]): result => {
+export const main = (p: parameter, s: storage): result => {
     return match (p, {
         Transfer:         p => transferPermitted(p,s),
         Balance_of:       p => FA2.balance_of(p)(s),
