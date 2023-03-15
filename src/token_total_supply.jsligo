@@ -2,23 +2,23 @@
 
 export type t = big_map<FA2.Ledger.token_id, nat>;
 
-const getSupply = ([supply, tokenId] : [t, FA2.Ledger.token_id]) : nat =>
+const getSupply = (supply: t, tokenId: FA2.Ledger.token_id) : nat =>
     match (Big_map.find_opt(tokenId, supply), { 
         Some: (a: nat) => a,
         None: () => (failwith(FA2.Errors.undefined_token) as nat)
    })
 
-export const createSupply = ([supply, newTokenId, amount_] : [t, FA2.Ledger.token_id, nat]) : t => {
+export const createSupply = (supply: t, newTokenId: FA2.Ledger.token_id, amount_: nat) : t => {
     return Big_map.add(newTokenId, amount_, supply)
 };
 
-export const increaseSupply = ([supply, tokenId,amount_] : [t, FA2.Ledger.token_id, nat]) : t => {
+export const increaseSupply = (supply: t, tokenId: FA2.Ledger.token_id, amount_: nat) : t => {
     let curAmount = getSupply(supply, tokenId);
     let newAmount = curAmount + amount_;
     return Big_map.update(tokenId, (Some(newAmount)), supply)
 };
 
-export const decreaseSupply = ([supply, tokenId, amount_] : [t, FA2.Ledger.token_id, nat]) : t => {
+export const decreaseSupply = (supply: t, tokenId: FA2.Ledger.token_id, amount_: nat) : t => {
     let curAmount = getSupply(supply, tokenId);
     let newSupply = abs(curAmount - amount_);
     return Big_map.update(tokenId, (Some(newSupply)), supply);

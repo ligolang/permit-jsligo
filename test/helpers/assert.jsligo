@@ -1,5 +1,5 @@
 // Assert contract call results in failwith with given string
-export const string_failure = ([res, expected]: [test_exec_result, string]) : unit => {
+export const string_failure = (res: test_exec_result, expected: string) : unit => {
     let expected = Test.eval(expected);
     return match (res, {
         Fail: (x: test_exec_error) => (

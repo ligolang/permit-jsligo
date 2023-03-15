@@ -26,7 +26,7 @@ type initial_extended_storage = {
 const dummyDefaultExpiry = (0 as nat);
 const dummyMaxExpiry = (0 as nat);
 
-export const getInitialExtendedStorage = ([admin, initDefaultExpiry, initMaxExpiry] : [address, nat, nat]) : initial_extended_storage => {
+export const getInitialExtendedStorage = (admin: address, initDefaultExpiry: nat, initMaxExpiry: nat) : initial_extended_storage => {
     return {
         admin : admin,
         counter : (0 as nat),
@@ -48,7 +48,7 @@ export const originate = (init_storage: Token.storage) : originated => {
 };
 
 export const originateFromFile = (init_storage : Token.storage) : originated => {
-    let f = "./src/main.jsligo";
+    let f = "../../src/main.jsligo";
     let v_mich = Test.run( ((x: Token.storage) => x), init_storage);
     let [addr, _, _] = Test.originate_from_file(f, "main", (list(["getDefaultExpiry", "getCounter"]) as list<string>), v_mich, 0 as tez);
     let taddr : taddr = Test.cast_address (addr);
@@ -59,64 +59,64 @@ export const originateFromFile = (init_storage : Token.storage) : originated => 
 
 // Make a permit with given packed params and secret key
 // The chain_id is equal to 0x00000000 in the test framework
-export const makePermit = ([hash_, account, token_addr, counter] : [bytes, [address, key, string], address, nat]) : Token.permitParams => {
+export const makePermit = (hash_: bytes, account: [address, key, string], token_addr: address, counter: nat) : Token.permitParams => {
     let [_, pubKey, secretKey] = account;
-    let packed = Bytes.pack ([0x00000000, token_addr], [counter, hash_]);
+    let packed = Bytes.pack ([[0x00000000, token_addr], [counter, hash_]]);
     let sig = Test.sign(secretKey, packed);
     return [pubKey, [sig, hash_]]
 };
 
 // Call entry point of Token contr contract
-const call = ([p, contr] : [Token.parameter, contr]) : test_exec_result =>
+const call = (p: Token.parameter, contr: contr) : test_exec_result =>
     Test.transfer_to_contract(contr, p, (0 as mutez))
 
-export const permit = ([p, contr] : [list<Token.permitParams>, contr]) : test_exec_result =>
+export const permit = (p: list<Token.permitParams>, contr: contr) : test_exec_result =>
     call(Permit(p), contr)
 
-export const setExpiry = ([p, contr] : [Token.expiryParams, contr]) : test_exec_result =>
+export const setExpiry = (p: Token.expiryParams, contr: contr) : test_exec_result =>
     call(SetExpiry(p), contr)
 
-export const setAdmin = ([p, contr] : [address, contr]) : test_exec_result =>
+export const setAdmin = (p: address, contr: contr) : test_exec_result =>
     call(SetAdmin(p), contr)
 
-export const transfer = ([p, contr] : [Token.FA2.transfer, contr]) : test_exec_result => {
+export const transfer = (p: Token.FA2.transfer, contr: contr) : test_exec_result => {
     let p : Token.parameter = Transfer(p);
     return call(p, contr)
 };
 
-export const createToken = ([md, owner, amount, contr] : [Token.FA2.TokenMetadata.data, address, nat, contr]) : test_exec_result =>
+export const createToken = (md: Token.FA2.TokenMetadata.data, owner: address, amount: nat, contr: contr) : test_exec_result =>
     call(Create_token([md, owner, amount]), contr);
 
-export const mintToken = ([p, contr] : [list<Token.mintOrBurn>, contr]) : test_exec_result =>
+export const mintToken = (p: list<Token.mintOrBurn>, contr: contr) : test_exec_result =>
     call(Mint_token(p), contr)
 
-export const burnToken = ([p, contr] : [list<Token.mintOrBurn>, contr]) : test_exec_result =>
+export const burnToken = (p: list<Token.mintOrBurn>, contr: contr) : test_exec_result =>
     call(Burn_token(p), contr)
 
-export const permitSuccess = ([p, contr] : [list<Token.permitParams>, contr]) : unit =>
+export const permitSuccess = (p: list<Token.permitParams>, contr: contr) : unit =>
     Assert.tx_success (permit(p, contr))
 
-export const setExpirySuccess = ([p, contr] : [Token.expiryParams, contr]) : unit =>
+export const setExpirySuccess = (p: Token.expiryParams, contr: contr) : unit =>
     Assert.tx_success (setExpiry(p, contr))
 
-export const setAdminSuccess = ([p, contr] : [address, contr]) : unit =>
+export const setAdminSuccess = (p: address, contr: contr) : unit =>
     Assert.tx_success (setAdmin(p, contr))
 
-export const transferSuccess = ([p, contr] : [Token.FA2.transfer, contr]) : unit =>
+export const transferSuccess = (p: Token.FA2.transfer, contr: contr) : unit =>
     Assert.tx_success (transfer(p, contr))
 
-export const createTokenSuccess = ([md, owner, amount, contr] : [Token.FA2.TokenMetadata.data, address, nat, contr]) : unit =>
+export const createTokenSuccess = (md: Token.FA2.TokenMetadata.data, owner: address, amount: nat, contr: contr) : unit =>
     Assert.tx_success (createToken(md, owner, amount, contr))
 
-export const mintTokenSuccess = ([p, contr] : [list<Token.mintOrBurn>, contr]) : unit =>
+export const mintTokenSuccess = (p: list<Token.mintOrBurn>, contr: contr) : unit =>
     Assert.tx_success (mintToken(p, contr))
 
-export const burnTokenSuccess = ([p, contr] : [list<Token.mintOrBurn>, contr]) : unit => {
+export const burnTokenSuccess = (p: list<Token.mintOrBurn>, contr: contr) : unit => {
     Assert.tx_success (burnToken(p, contr));
 };
 
 // Assert Token contract at [taddr] has permit with [address, hash] key 
-export const assertHasPermit = ([taddr, paramPermitKey] : [taddr, Token.Extension.permitKey]) : unit => {
+export const assertHasPermit = (taddr: taddr, paramPermitKey: Token.Extension.permitKey) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt(paramPermitKey, s.extension.permits), {
         Some: (_: timestamp) => unit,
@@ -125,7 +125,7 @@ export const assertHasPermit = ([taddr, paramPermitKey] : [taddr, Token.Extensio
 };
 
 // Assert Token contract at [taddr] has no permit with [address, hash] key
-export const assertNoPermit = ([taddr, paramPermitKey] : [taddr, Token.Extension.permitKey]) : unit => {
+export const assertNoPermit = (taddr: taddr, paramPermitKey: Token.Extension.permitKey) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt(paramPermitKey, s.extension.permits), {
         Some: (_: timestamp) => Test.failwith("Permits Big_map key should be None"),
@@ -134,13 +134,13 @@ export const assertNoPermit = ([taddr, paramPermitKey] : [taddr, Token.Extension
 };
 
 // Assert Token contract at [taddr] has counter equals to [counter]
-export const assertCounter = ([taddr, counter] : [taddr, nat]) : unit => {
+export const assertCounter = (taddr: taddr, counter: nat) : unit => {
     let s = Test.get_storage (taddr);
     assert_with_error( (s.extension.counter == counter), "Counter does not have expected value");
 };
 
 // Assert Token contract at [taddr] has user expiry for [userAddr] equal to [seconds]
-export const assertUserExpiry = ([taddr, userAddr, seconds] : [taddr, address, option<nat>]) : unit => {
+export const assertUserExpiry = (taddr: taddr, userAddr: address, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt(userAddr, s.extension.userExpiries), {
         Some: (s: option<seconds>) => assert (s == seconds),
@@ -150,7 +150,7 @@ export const assertUserExpiry = ([taddr, userAddr, seconds] : [taddr, address, o
 
 // Assert Token contract at [taddr] has user permit expiry for [userAddr] and
 // hash [hash_] equal to [seconds] 
-export const assertPermitExpiry = ([taddr, userAddr, hash_, seconds] : [taddr, address, bytes, option<nat>]) : unit => {
+export const assertPermitExpiry = (taddr: taddr, userAddr: address, hash_: bytes, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt([userAddr, hash_], s.extension.permitExpiries), {
         Some: (s: option<seconds>) => assert (s == seconds),
@@ -159,7 +159,7 @@ export const assertPermitExpiry = ([taddr, userAddr, hash_, seconds] : [taddr, a
 };
 
 // assert Token contract at [taddr] have [owner] address with [amount_] tokens in its ledger
-export const assertBalance = ([taddr, owner, tokenId, amount_] : [taddr, address, nat, nat]) : unit => {
+export const assertBalance = (taddr: taddr, owner: address, tokenId: nat, amount_: nat) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt([owner, tokenId], s.ledger), {
         Some: (tokens: nat) => assert(tokens == amount_),
@@ -168,7 +168,7 @@ export const assertBalance = ([taddr, owner, tokenId, amount_] : [taddr, address
 };
 
 // assert Token contract at [taddr] have tokenTotalSupply for [tokenId] matching [amount_] 
-export const assertSupply = ([taddr, tokenId, amount_] : [taddr, Token.FA2.Ledger.token_id, nat]) : unit => {
+export const assertSupply = (taddr: taddr, tokenId: Token.FA2.Ledger.token_id, amount_: nat) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt(tokenId, s.extension.extension), {
         Some: (tokens: nat) => assert(tokens == amount_),
