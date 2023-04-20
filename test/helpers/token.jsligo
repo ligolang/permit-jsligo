@@ -80,8 +80,8 @@ export const setAdmin = (p: address, contr: contr) : test_exec_result =>
     call(SetAdmin(p), contr)
 
 export const transfer = (p: Token.FA2.transfer, contr: contr) : test_exec_result => {
-    let p : Token.parameter = Transfer(p);
-    return call(p, contr)
+    let param : Token.parameter = Transfer(p);
+    return call(param, contr)
 };
 
 export const createToken = (md: Token.FA2.TokenMetadata.data, owner: address, amount: nat, contr: contr) : test_exec_result =>
@@ -143,7 +143,7 @@ export const assertCounter = (taddr: taddr, counter: nat) : unit => {
 export const assertUserExpiry = (taddr: taddr, userAddr: address, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt(userAddr, s.extension.userExpiries), {
-        Some: (s: option<seconds>) => assert (s == seconds),
+        Some: (s) => assert (s == seconds),
         None: () => Test.failwith("User epiries Big_map key should not be missing")
     })
 };
@@ -153,7 +153,7 @@ export const assertUserExpiry = (taddr: taddr, userAddr: address, seconds: optio
 export const assertPermitExpiry = (taddr: taddr, userAddr: address, hash_: bytes, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
     match (Big_map.find_opt([userAddr, hash_], s.extension.permitExpiries), {
-        Some: (s: option<seconds>) => assert (s == seconds),
+        Some: (s) => assert (s == seconds),
         None: () => Test.failwith("Permit epiries Big_map key should not be missing")
     })
 };

@@ -29,9 +29,9 @@ const create = (paramCreate: [FA2.TokenMetadata.data, address, nat], s: storage)
     let [metadata,owner,amount] = paramCreate;
     Extension.assertAdmin(s.extension);
     let md = Storage.addNewToken(s.token_metadata, metadata.token_id, metadata);
-    let s = Storage.setTokenMetadata(s, md);
+    let store = Storage.setTokenMetadata(s, md);
     let ledger = FA2.Ledger.increase_token_amount_for_user(s.ledger)(owner)(metadata.token_id)(amount);
-    let newStore = FA2.Storage.set_ledger(s)(ledger);
+    let newStore = FA2.Storage.set_ledger(store)(ledger);
     let supply = TokenTotalSupply.createSupply(newStore.extension.extension, metadata.token_id, amount);
     return [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
 };
@@ -48,8 +48,8 @@ const mint = (lst: list<mintOrBurn>, s: storage) : result => {
         ]
     };
     let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
-    let s = FA2.Storage.set_ledger(s)(ledger);
-    return [Constants.noOperation, { ...s, extension : Extension.setExtension(s.extension, supply) }]
+    let store = FA2.Storage.set_ledger(s)(ledger);
+    return [Constants.noOperation, { ...store, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 const burn = (lst: list<mintOrBurn>, s: storage) : result => {
@@ -63,8 +63,8 @@ const burn = (lst: list<mintOrBurn>, s: storage) : result => {
       ]
     };
    let [ledger, supply] = List.fold_left(processOne, [s.ledger, s.extension.extension], lst);
-   let s = FA2.Storage.set_ledger(s)(ledger);
-   return [Constants.noOperation,{ ...s, extension : Extension.setExtension(s.extension, supply) }]
+   let store = FA2.Storage.set_ledger(s)(ledger);
+   return [Constants.noOperation,{ ...store, extension : Extension.setExtension(s.extension, supply) }]
 };
 
 // TZIP-17
@@ -122,10 +122,10 @@ const setExpiry = (p: expiryParams, s: storage) : result => {
 // TZIP-17 implementation of TZIP-12 Transfer
 const transferPermitted = (transfer: FA2.transfer, s: storage) : result => {
      let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, extension], FA2.transfer_from]) : [FA2.Ledger.t, extension] => {
-        let [ledger, ext] = acc;
+        let [ledger, extension] = acc;
         let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
         let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash]; 
-        const [isTransferAuthorized, ext] = Extension.transferPresigned(ext, permitKey);
+        const [isTransferAuthorized, ext] = Extension.transferPresigned(extension, permitKey);
         const {from_, txs} = transferFrom;
         let applyTransfer = ([ledger, dst] : [FA2.Ledger.t, FA2.atomic_trans]) : FA2.Ledger.t => {
             let {token_id, amount, to_} = dst;
@@ -141,8 +141,8 @@ const transferPermitted = (transfer: FA2.transfer, s: storage) : result => {
                 return ledgerFinal
             }
         };
-        let ledger = List.fold(applyTransfer, txs, ledger);
-        return [ledger, ext]
+        let l = List.fold(applyTransfer, txs, ledger);
+        return [l, ext]
     };
     let [newLedger, newExt] = List.fold(makeTransfer, transfer, [s.ledger, s.extension]);
     return [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
