@@ -1,30 +1,30 @@
 // Assert contract call results in failwith with given string
 export const string_failure = (res: test_exec_result, expected: string) : unit => {
-    let expected = Test.eval(expected);
+    let expect = Test.eval(expected);
     return match (res, {
         Fail: (x: test_exec_error) => (
             match (x, {
-                Rejected: (x:[michelson_code,address]) => assert (Test.michelson_equal (x[0], expected)),
-                Balance_too_low: (_: unit) => Test.failwith("contract failed: balance too low"),
-                Other: (s: string) => failwith (s)
+                Rejected: (x:[michelson_program,address]) => assert (Test.michelson_equal (x[0], expect)),
+                Balance_too_low: (_) => Test.failwith("contract failed: balance too low"),
+                Other: (s: string) => Test.failwith (s)
             })
         ),
-        Success: (_:unit) => Test.failwith("Transaction should fail")
+        Success: (_:nat) => Test.failwith("Transaction should fail")
     });
 };
 
 // Assert contract result is successful
 export const tx_success = (res: test_exec_result) : unit => {
     return match (res, {
-        Success: (_: unit) => unit,
-        Fail: (x: test_exec_result) => (
+        Success: (_: nat) => unit,
+        Fail: (x: test_exec_error) => (
             match (x, {
-                Rejected: (x:[michelson_code,address]) => {
+                Rejected: (x:[michelson_program,address]) => {
                     Test.log(x[0]);
                     return Test.failwith("Transaction should not fail")
                 },
-                Balance_too_low: (_: unit) => Test.failwith("Transaction should not fail"),
-                Other: (_: unit) => Test.failwith("Transaction should not fail")
+                Balance_too_low: (_) => Test.failwith("Transaction should not fail"),
+                Other: (_: string) => Test.failwith("Transaction should not fail")
             })
         )
     })
