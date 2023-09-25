@@ -19,9 +19,9 @@ const bootstrap = (init_ts: timestamp, initDefaultExpiry: nat, initMaxExpiry: na
 // Successful transfer with permit
 const _test_success = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), (3600 as nat), (7200 as nat));
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     let transfer_request : Token.FA2.transfer_from = {
         from_:owner1_addr,
         txs:list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])
@@ -45,10 +45,10 @@ const _test_success_by_operator_with_expired_permit = () : unit => {
     let expired = ("2000-01-01t10:10:10Z" as timestamp);
 
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(now);
-    let [owner1, owner2, _] = owners_with_keys;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
-    let [op1, _, _] = ops;
+    let [owner1, owner2, _owner3] = owners_with_keys;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
+    let [op1, _op2, _op3] = ops;
 
     let transfer_request : Token.FA2.transfer_from = {
         from_:owner1_addr,
@@ -57,7 +57,7 @@ const _test_success_by_operator_with_expired_permit = () : unit => {
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_request));
 
     let extended_storage = Token_helper.getInitialExtendedStorage(admin, initDefaultExpiry, initMaxExpiry);
-    let extended_storage_modified = { ...extended_storage, 
+    let extended_storage_modified = { ...extended_storage,
         permits : Big_map.literal(list([ [[owner1_addr, hash_], expired] ])),
         counter : (1 as nat)
     };
@@ -78,9 +78,9 @@ const _test_failure_expired_permit = () : unit => {
     let expired = ("2000-01-01t10:10:10Z" as timestamp);
 
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(now);
-    let [owner1, owner2, _] = owners_with_keys;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners_with_keys;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
 
     let transfer_request = ({
         from_:owner1_addr,

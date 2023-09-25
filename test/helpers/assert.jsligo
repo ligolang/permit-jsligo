@@ -1,31 +1,29 @@
 // Assert contract call results in failwith with given string
 export const string_failure = (res: test_exec_result, expected: string) : unit => {
     let expect = Test.eval(expected);
-    return match (res, {
-        Fail: (x: test_exec_error) => (
-            match (x, {
-                Rejected: (x:[michelson_program,address]) => assert (Test.michelson_equal (x[0], expect)),
-                Balance_too_low: (_) => Test.failwith("contract failed: balance too low"),
-                Other: (s: string) => Test.failwith (s)
-            })
-        ),
-        Success: (_:nat) => Test.failwith("Transaction should fail")
-    });
+    return match (res) {
+        when(Fail(x)):
+            match (x) {
+                when(Rejected(x)): assert (Test.michelson_equal (x[0], expect));
+                when(Balance_too_low(_)): Test.failwith("contract failed: balance too low");
+                when(Other(s)): Test.failwith (s);
+            };
+        when(Success(_)): Test.failwith("Transaction should fail");
+    };
 };
 
 // Assert contract result is successful
 export const tx_success = (res: test_exec_result) : unit => {
-    return match (res, {
-        Success: (_: nat) => unit,
-        Fail: (x: test_exec_error) => (
-            match (x, {
-                Rejected: (x:[michelson_program,address]) => {
+    return match (res) {
+        when(Success(_)): unit;
+        when(Fail(x)):
+            match (x) {
+                when(Rejected(x)): do {
                     Test.log(x[0]);
                     return Test.failwith("Transaction should not fail")
-                },
-                Balance_too_low: (_) => Test.failwith("Transaction should not fail"),
-                Other: (_: string) => Test.failwith("Transaction should not fail")
-            })
-        )
-    })
+                };
+                when(Balance_too_low(_)): Test.failwith("Transaction should not fail");
+                when(Other(_)): Test.failwith("Transaction should not fail");
+            };
+    }
 }

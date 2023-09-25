@@ -19,9 +19,9 @@ const bootstrap = (init_ts: timestamp, initDefaultExpiry: nat, initMaxExpiry: na
 // Successful permit creation
 const _test_success_add_permit_one = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), 3600 as nat, 7200 as nat);
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     let transfer_requests : Token.FA2.transfer = list([{
                 from_:owner1_addr,
                 txs: (list([{
@@ -39,12 +39,12 @@ const _test_success_add_permit_one = () : unit => {
 // Successful successive permit creation
 const _test_success_add_permit_list = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), 3600 as nat,(7200 as nat));
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     let transfer_requests : Token.FA2.transfer = list([
         {
-            from_: owner1_addr, 
+            from_: owner1_addr,
             txs: list([
                 {to_:owner2_addr, amount:2 as nat, token_id:1 as nat}
             ])
@@ -53,8 +53,8 @@ const _test_success_add_permit_list = () : unit => {
     let hash_ = Crypto.blake2b (Bytes.pack(transfer_requests));
     let permit1 = Token_helper.makePermit(hash_, owner1, tok.addr,(0 as nat));
     let transfer_requests2 : Token.FA2.transfer = list([
-        {   
-            from_:owner2_addr, 
+        {
+            from_:owner2_addr,
             txs: list([
                 { to_:owner1_addr, amount:(2 as nat), token_id:(1 as nat)}
             ])
@@ -67,7 +67,7 @@ const _test_success_add_permit_list = () : unit => {
     Token_helper.assertCounter(tok.taddr,(2 as nat))
 };
 
-// Successful permit update 
+// Successful permit update
 const _test_success_update_permit = () : unit => {
     let initDefaultExpiry = 86_400 as nat;
     let initMaxExpiry = 259_200 as nat;
@@ -75,9 +75,9 @@ const _test_success_update_permit = () : unit => {
     let expired = ("2000-01-01t10:10:10Z" as timestamp);
 
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(now);
-    let [owner1, owner2, _] = owners_with_keys;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners_with_keys;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
 
     let transfer_requests : Token.FA2.transfer = list([
         ({from_: owner1_addr, txs: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
@@ -85,7 +85,7 @@ const _test_success_update_permit = () : unit => {
     let hash_ = Crypto.blake2b (Bytes.pack (transfer_requests));
 
     let extended_storage = Token_helper.getInitialExtendedStorage(admin, initDefaultExpiry, initMaxExpiry);
-    let extended_storage_modified = { ...extended_storage, 
+    let extended_storage_modified = { ...extended_storage,
         permits : Big_map.literal (list([[
             [owner1_addr, hash_], expired
             ]])),
@@ -101,9 +101,9 @@ const _test_success_update_permit = () : unit => {
 // Failing permit update because it alredy exists and has not expired
 const _test_success_update_permit_already_exist = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp),(3600 as nat),(7200 as nat));
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     let transfer_requests : Token.FA2.transfer = list([
         ({from_:owner1_addr, txs: list([{to_:owner2_addr, amount:(2 as nat), token_id:(1 as nat)}])})
     ]);

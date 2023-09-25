@@ -2,8 +2,8 @@
 #import "./assert.jsligo" "Assert"
 
 // Some types for readability
-type taddr = typed_address<Token.parameter, Token.storage>;
-type contr = contract<Token.parameter>;
+type taddr = typed_address<parameter_of Token, Token.storage>;
+type contr = contract<parameter_of Token>;
 export type originated = {
     addr: address,
     taddr: taddr,
@@ -22,9 +22,9 @@ type initial_extended_storage = {
     extension : Token.Extension.TokenTotalSupply.t
 };
 
-// Some dummy values when they don't matter for a given test 
-const dummyDefaultExpiry = (0 as nat);
-const dummyMaxExpiry = (0 as nat);
+// Some dummy values when they don't matter for a given test
+export const dummyDefaultExpiry = (0 as nat);
+export const dummyMaxExpiry = (0 as nat);
 
 export const getInitialExtendedStorage = (admin: address, initDefaultExpiry: nat, initMaxExpiry: nat) : initial_extended_storage => {
     return {
@@ -39,9 +39,9 @@ export const getInitialExtendedStorage = (admin: address, initDefaultExpiry: nat
     };
 };
 
-// Originate a Token contract with given init_storage storage 
+// Originate a Token contract with given init_storage storage
 export const originate = (init_storage: Token.storage) : originated => {
-    let [taddr, _, _] = Test.originate(Token.main, init_storage, 0 as tez);
+    let [taddr, _c, _n] = Test.originate_module(contract_of(Token), init_storage, 0 as tez);
     let contr = Test.to_contract (taddr);
     let addr = Tezos.address (contr);
     return { addr : addr, taddr : taddr, contr : contr };
@@ -50,7 +50,7 @@ export const originate = (init_storage: Token.storage) : originated => {
 export const originateFromFile = (init_storage : Token.storage) : originated => {
     let f = "../../src/main.jsligo";
     let v_mich = Test.run( ((x: Token.storage) => x), init_storage);
-    let [addr, _, _] = Test.originate_from_file(f, "main", (list(["getDefaultExpiry", "getCounter"]) as list<string>), v_mich, 0 as tez);
+    let [addr, _c, _n] = Test.originate_from_file(f, v_mich, 0 as tez);
     let taddr : taddr = Test.cast_address (addr);
     let contr = Test.to_contract (taddr);
     return {addr : addr, taddr : taddr, contr : contr}
@@ -67,7 +67,7 @@ export const makePermit = (hash_: bytes, account: [address, key, string], token_
 };
 
 // Call entry point of Token contr contract
-const call = (p: Token.parameter, contr: contr) : test_exec_result =>
+const call = (p: parameter_of Token, contr: contr) : test_exec_result =>
     Test.transfer_to_contract(contr, p, (0 as mutez))
 
 export const permit = (p: list<Token.permitParams>, contr: contr) : test_exec_result =>
@@ -80,7 +80,7 @@ export const setAdmin = (p: address, contr: contr) : test_exec_result =>
     call(SetAdmin(p), contr)
 
 export const transfer = (p: Token.FA2.transfer, contr: contr) : test_exec_result => {
-    let param : Token.parameter = Transfer(p);
+    let param : parameter_of Token = Transfer(p);
     return call(param, contr)
 };
 
@@ -115,22 +115,22 @@ export const burnTokenSuccess = (p: list<Token.mintOrBurn>, contr: contr) : unit
     Assert.tx_success (burnToken(p, contr));
 };
 
-// Assert Token contract at [taddr] has permit with [address, hash] key 
+// Assert Token contract at [taddr] has permit with [address, hash] key
 export const assertHasPermit = (taddr: taddr, paramPermitKey: Token.Extension.permitKey) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt(paramPermitKey, s.extension.permits), {
-        Some: (_: timestamp) => unit,
-        None: () => Test.failwith("Permits Big_map key should not be missing")
-    })
+    return match (Big_map.find_opt(paramPermitKey, s.extension.permits)) {
+        when(Some(_)): unit;
+        when(None()): Test.failwith("Permits Big_map key should not be missing");
+    }
 };
 
 // Assert Token contract at [taddr] has no permit with [address, hash] key
 export const assertNoPermit = (taddr: taddr, paramPermitKey: Token.Extension.permitKey) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt(paramPermitKey, s.extension.permits), {
-        Some: (_: timestamp) => Test.failwith("Permits Big_map key should be None"),
-        None: () => unit
-    })
+    return match (Big_map.find_opt(paramPermitKey, s.extension.permits)) {
+        when(Some(_)): Test.failwith("Permits Big_map key should be None");
+        when(None()): unit;
+    }
 };
 
 // Assert Token contract at [taddr] has counter equals to [counter]
@@ -142,36 +142,36 @@ export const assertCounter = (taddr: taddr, counter: nat) : unit => {
 // Assert Token contract at [taddr] has user expiry for [userAddr] equal to [seconds]
 export const assertUserExpiry = (taddr: taddr, userAddr: address, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt(userAddr, s.extension.userExpiries), {
-        Some: (s) => assert (s == seconds),
-        None: () => Test.failwith("User epiries Big_map key should not be missing")
-    })
+    return match (Big_map.find_opt(userAddr, s.extension.userExpiries)) {
+        when(Some(s)): assert (s == seconds);
+        when(None()): Test.failwith("User epiries Big_map key should not be missing");
+    }
 };
 
 // Assert Token contract at [taddr] has user permit expiry for [userAddr] and
-// hash [hash_] equal to [seconds] 
+// hash [hash_] equal to [seconds]
 export const assertPermitExpiry = (taddr: taddr, userAddr: address, hash_: bytes, seconds: option<nat>) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt([userAddr, hash_], s.extension.permitExpiries), {
-        Some: (s) => assert (s == seconds),
-        None: () => Test.failwith("Permit epiries Big_map key should not be missing")
-    })
+    return match (Big_map.find_opt([userAddr, hash_], s.extension.permitExpiries)) {
+        when(Some(s)): assert (s == seconds);
+        when(None()): Test.failwith("Permit epiries Big_map key should not be missing");
+    }
 };
 
 // assert Token contract at [taddr] have [owner] address with [amount_] tokens in its ledger
 export const assertBalance = (taddr: taddr, owner: address, tokenId: nat, amount_: nat) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt([owner, tokenId], s.ledger), {
-        Some: (tokens: nat) => assert(tokens == amount_),
-        None: () => Test.failwith("Big_map key should not be missing")
-    })
+    return match (Big_map.find_opt([owner, tokenId], s.ledger)) {
+        when(Some(tokens)): assert(tokens == amount_);
+        when(None()): Test.failwith("Big_map key should not be missing");
+    }
 };
 
-// assert Token contract at [taddr] have tokenTotalSupply for [tokenId] matching [amount_] 
+// assert Token contract at [taddr] have tokenTotalSupply for [tokenId] matching [amount_]
 export const assertSupply = (taddr: taddr, tokenId: Token.FA2.Ledger.token_id, amount_: nat) : unit => {
     let s = Test.get_storage (taddr);
-    match (Big_map.find_opt(tokenId, s.extension.extension), {
-        Some: (tokens: nat) => assert(tokens == amount_),
-        None: () => Test.failwith("Big_map key should not be missing")
-    })
+    return match (Big_map.find_opt(tokenId, s.extension.extension)) {
+        when(Some(tokens)): assert(tokens == amount_);
+        when(None()): Test.failwith("Big_map key should not be missing");
+    }
 };

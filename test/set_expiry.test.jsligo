@@ -19,8 +19,8 @@ const bootstrap = (init_ts: timestamp, initDefaultExpiry: nat, initMaxExpiry: na
 // Successful setting of user expiry
 const _test_success_set_user_expiry = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), 3600 as nat, 7200 as nat);
-    let [owner1, _, _] = owners;
-    let [owner1_addr, _, _] = owner1;
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     Test.set_source (owner1_addr);
     let expiryParams : Token.expiryParams = [owner1_addr, [(5400 as nat), (None() as option<bytes>)]];
     Token_helper.setExpirySuccess(expiryParams, tok.contr);
@@ -30,8 +30,8 @@ const _test_success_set_user_expiry = () : unit => {
 // Successful setting of permit expiry
 const _test_success_set_permit_expiry = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), 3600 as nat, 7200 as nat);
-    let [owner1, _, _] = owners;
-    let [owner1_addr, _, _] = owner1;
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     Test.set_source (owner1_addr);
     let hash_ = 0x01;
     let expiryParams : Token.expiryParams = [owner1_addr, [(5400 as nat), (Some(hash_))]];
@@ -42,9 +42,9 @@ const _test_success_set_permit_expiry = () : unit => {
 // Failure because sender is not the updated user expiry
 const _test_failure_forbidden = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), (3600 as nat), (7200 as nat));
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     Test.set_source (owner2_addr);
     let expiryParams : Token.expiryParams = [owner1_addr, [(5400 as nat), (None() as option<bytes>)]];
     let r = Token_helper.setExpiry(expiryParams, tok.contr);
@@ -54,9 +54,9 @@ const _test_failure_forbidden = () : unit => {
 // Failure because tried to set value exceeding maxExpiry
 const _test_failure_max_seconds_exceeded = () : unit => {
     let [tok, _, owners] = bootstrap(("2000-01-01t10:10:10Z" as timestamp), (3600 as nat), (7200 as nat));
-    let [owner1, owner2, _] = owners;
-    let [owner1_addr, _, _] = owner1;
-    let [owner2_addr, _, _] = owner2;
+    let [owner1, owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    let [owner2_addr, _owner2_1, _owner2_2] = owner2;
     Test.set_source (owner2_addr);
     let expiryParams : Token.expiryParams = [owner1_addr, [14_400 as nat, (None() as option<bytes>)]];
     let r = Token_helper.setExpiry(expiryParams, tok.contr);

@@ -18,54 +18,48 @@ export type t<a> = {
     extension : a
 };
 
-const get_user_defined_expiry = 
+const get_user_defined_expiry =
 <T>(from_: address, ext: t<T>): option<seconds> => {
-    return match (Big_map.find_opt(from_, ext.userExpiries), {
-        None: () => (Some(ext.defaultExpiry)),
-        Some: exp => exp
-    });
+    return match (Big_map.find_opt(from_, ext.userExpiries)) {
+        when(None()): (Some(ext.defaultExpiry));
+        when(Some(exp)): exp;
+    };
 };
 
-const getExpiry = 
+const getExpiry =
 <T>(ext: t<T>, paramPermitKey: permitKey): seconds => {
-    return match ((Big_map.find_opt([paramPermitKey[0], paramPermitKey[1]], ext.permitExpiries) as option<option<seconds>>), {
-        None: () => {
-                return match ((Big_map.find_opt(paramPermitKey[0], ext.userExpiries) as option<option<seconds>>), {
-                    None: () => ext.defaultExpiry,
-                    Some: exp => {
-                        return match (exp, {
-                            None: () => ext.defaultExpiry,
-                            Some: t => t
-                        })
-                    }
-                })
-            },
-        Some: (p: option<seconds>) => {
-                return match (p, {
-                    None: () => ext.defaultExpiry,
-                    Some: exp => exp
-                })
-            }
-    })
+    return match ((Big_map.find_opt([paramPermitKey[0], paramPermitKey[1]], ext.permitExpiries) as option<option<seconds>>)) {
+        when(None()): match ((Big_map.find_opt(paramPermitKey[0], ext.userExpiries) as option<option<seconds>>)) {
+                    when(None()): ext.defaultExpiry;
+                    when(Some(exp)): match (exp) {
+                            when(None()): ext.defaultExpiry;
+                            when(Some(t)): t;
+                    };
+        };
+        when(Some(p)): match (p) {
+                    when(None()): ext.defaultExpiry;
+                    when(Some(exp)): exp;
+            };
+    }
 };
 
 
-export const assertAdmin = 
+export const assertAdmin =
 <T>(ext : t<T>) =>
     assert_with_error((Tezos.get_sender() == ext.admin), Errors.requiresAdmin);
 
-export const setAdmin = 
+export const setAdmin =
 <T>(ext: t<T>, admin: address): t<T> => {
     assertAdmin(ext);
     return { ...ext, admin : admin };
 };
 
-export const setExtension = 
+export const setExtension =
 <T>(ext: t<T>, extension: T): t<T> => {
     return { ...ext, extension : extension };
 };
 
-export const addPermit = 
+export const addPermit =
 <T>(ext: t<T>, paramPermitKey: permitKey): t<T> => {
     return { ...ext,
         permits : Big_map.add(paramPermitKey, Tezos.get_now(), ext.permits),
@@ -73,7 +67,7 @@ export const addPermit =
     }
 };
 
-export const updatePermit = 
+export const updatePermit =
 <T>(ext: t<T>, paramPermitKey: permitKey): t<T> => {
     return { ...ext,
         permits : Big_map.update(paramPermitKey, (Some(Tezos.get_now())), ext.permits),
@@ -81,39 +75,37 @@ export const updatePermit =
     }
 };
 
-export const _checkNotExpired = 
+export const _checkNotExpired =
 <T>(ext: t<T>, submissionTimestamp: timestamp, paramPermitKey: permitKey): unit => {
     const effectiveExpiry: seconds = getExpiry(ext, paramPermitKey);
     assert_with_error((abs (Tezos.get_now() - submissionTimestamp) >= effectiveExpiry), Errors.dupPermit);
 };
 
-export const transferPresigned = 
+export const transferPresigned =
 <T>(ext: t<T>, paramPermitKey: permitKey): [bool, t<T>] => {
     let permitSubmitTime: timestamp =
-        match (Big_map.find_opt(paramPermitKey, ext.permits), {
-            None: () => (0 as timestamp),
-            Some: (exp: timestamp) => exp
-        });
+        match (Big_map.find_opt(paramPermitKey, ext.permits)) {
+            when(None()): (0 as timestamp);
+            when(Some(exp)): exp
+        };
     if (permitSubmitTime == (0 as timestamp)) {
         return [false, ext]
     } else {
         let effectiveExpiry =
-            match (Big_map.find_opt(paramPermitKey, ext.permitExpiries), {
-                None: () => {
-                    return match (Big_map.find_opt(paramPermitKey[0], ext.userExpiries), {
-                        None: () => (Some(ext.defaultExpiry)),
-                        Some: exp => exp
-                    })
-                },
-                Some: (exp: option<seconds>) => exp
-            });
-        return match (effectiveExpiry, {
-            None: () => failwith(Errors.missingExpiry),
-            Some: effective_exp => {  
+            match (Big_map.find_opt(paramPermitKey, ext.permitExpiries)) {
+                when(None()): match (Big_map.find_opt(paramPermitKey[0], ext.userExpiries)) {
+                        when(None()): (Some(ext.defaultExpiry));
+                        when(Some(exp)): exp;
+                };
+                when(Some(exp)): exp;
+            };
+        return match (effectiveExpiry) {
+            when(None()): failwith(Errors.missingExpiry);
+            when(Some(effective_exp)): do {
                 let permits = Big_map.remove(paramPermitKey, ext.permits);
                 let isAuthorised = abs ((Tezos.get_now()) - permitSubmitTime) < effective_exp;
                 return [isAuthorised, { ...ext, permits : permits }]
             }
-        });
+        };
     }
 };
