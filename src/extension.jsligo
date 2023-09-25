@@ -63,7 +63,7 @@ export const addPermit =
 <T>(ext: t<T>, paramPermitKey: permitKey): t<T> => {
     return { ...ext,
         permits : Big_map.add(paramPermitKey, Tezos.get_now(), ext.permits),
-        counter : ext.counter + (1 as nat)
+        counter : ext.counter + 1n
     }
 };
 
@@ -71,7 +71,7 @@ export const updatePermit =
 <T>(ext: t<T>, paramPermitKey: permitKey): t<T> => {
     return { ...ext,
         permits : Big_map.update(paramPermitKey, (Some(Tezos.get_now())), ext.permits),
-        counter : ext.counter + (1 as nat)
+        counter : ext.counter + 1n
     }
 };
 

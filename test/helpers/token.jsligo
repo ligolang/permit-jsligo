@@ -23,13 +23,13 @@ type initial_extended_storage = {
 };
 
 // Some dummy values when they don't matter for a given test
-export const dummyDefaultExpiry = (0 as nat);
-export const dummyMaxExpiry = (0 as nat);
+export const dummyDefaultExpiry = 0n;
+export const dummyMaxExpiry = 0n;
 
 export const getInitialExtendedStorage = (admin: address, initDefaultExpiry: nat, initMaxExpiry: nat) : initial_extended_storage => {
     return {
         admin : admin,
-        counter : (0 as nat),
+        counter : 0n,
         defaultExpiry : initDefaultExpiry,
         maxExpiry : initMaxExpiry,
         permits : (Big_map.empty as Token.Extension.permits),
@@ -41,7 +41,7 @@ export const getInitialExtendedStorage = (admin: address, initDefaultExpiry: nat
 
 // Originate a Token contract with given init_storage storage
 export const originate = (init_storage: Token.storage) : originated => {
-    let [taddr, _c, _n] = Test.originate_module(contract_of(Token), init_storage, 0 as tez);
+    let [taddr, _c, _n] = Test.originate_module(contract_of(Token), init_storage, 0tez);
     let contr = Test.to_contract (taddr);
     let addr = Tezos.address (contr);
     return { addr : addr, taddr : taddr, contr : contr };
@@ -50,7 +50,7 @@ export const originate = (init_storage: Token.storage) : originated => {
 export const originateFromFile = (init_storage : Token.storage) : originated => {
     let f = "../../src/main.jsligo";
     let v_mich = Test.run( ((x: Token.storage) => x), init_storage);
-    let [addr, _c, _n] = Test.originate_from_file(f, v_mich, 0 as tez);
+    let [addr, _c, _n] = Test.originate_from_file(f, v_mich, 0tez);
     let taddr : taddr = Test.cast_address (addr);
     let contr = Test.to_contract (taddr);
     return {addr : addr, taddr : taddr, contr : contr}
@@ -68,7 +68,7 @@ export const makePermit = (hash_: bytes, account: [address, key, string], token_
 
 // Call entry point of Token contr contract
 const call = (p: parameter_of Token, contr: contr) : test_exec_result =>
-    Test.transfer_to_contract(contr, p, (0 as mutez))
+    Test.transfer_to_contract(contr, p, 0mutez)
 
 export const permit = (p: list<Token.permitParams>, contr: contr) : test_exec_result =>
     call(Permit(p), contr)
