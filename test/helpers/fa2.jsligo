@@ -15,29 +15,29 @@ export const get_dummy_token_data = (token_id : nat) : Token.FA2.TokenMetadata.d
 
 // Get the initial storage of FA2
 // init_tok_amount is the amount of token allocated to every owner account
-export const get_initial_storage = 
+export const get_initial_storage =
 (owners: [address, address,  address], ops: [address, address, address], init_tok_amount: nat): common_storage => {
     let [owner1, owner2, owner3] = owners;
     let [op1, _op2, op3] = ops;
 
     let ledger = Big_map.literal( list([
-        [[owner1, (1 as nat)], init_tok_amount],
-        [[owner2, (2 as nat)], init_tok_amount],
-        [[owner3, (3 as nat)], init_tok_amount],
-        [[owner1, (2 as nat)], init_tok_amount]
+        [[owner1, 1n], init_tok_amount],
+        [[owner2, 2n], init_tok_amount],
+        [[owner3, 3n], init_tok_amount],
+        [[owner1, 2n], init_tok_amount]
     ]));
 
     let operators  = Big_map.literal( list([
-        [[owner1, op1], Set.literal(list([(1 as nat), (2 as nat)]))],
-        [[owner2, op1], Set.literal(list([(2 as nat)]))],
-        [[owner3, op1], Set.literal(list([(3 as nat)]))],
-        [[op1   , op3], Set.literal(list([(2 as nat)]))]
+        [[owner1, op1], Set.literal(list([1n, 2n]))],
+        [[owner2, op1], Set.literal(list([2n]))],
+        [[owner3, op1], Set.literal(list([3n]))],
+        [[op1   , op3], Set.literal(list([2n]))]
     ]));
 
     let token_metadata : Token.FA2.TokenMetadata.t = Big_map.literal( list([
-        [(1 as nat), get_dummy_token_data((1 as nat))],
-        [(2 as nat), get_dummy_token_data((2 as nat))],
-        [(3 as nat), get_dummy_token_data((3 as nat))]
+        [1n, get_dummy_token_data(1n)],
+        [2n, get_dummy_token_data(2n)],
+        [3n, get_dummy_token_data(3n)]
     ]));
 
     return {

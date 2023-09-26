@@ -3,10 +3,10 @@
 export type t = big_map<FA2.Ledger.token_id, nat>;
 
 const getSupply = (supply: t, tokenId: FA2.Ledger.token_id) : nat =>
-    match (Big_map.find_opt(tokenId, supply), { 
-        Some: (a: nat) => a,
-        None: () => (failwith(FA2.Errors.undefined_token) as nat)
-   })
+    match (Big_map.find_opt(tokenId, supply)) {
+        when(Some(a)): a;
+        when(None()): (failwith(FA2.Errors.undefined_token) as nat);
+   }
 
 export const createSupply = (supply: t, newTokenId: FA2.Ledger.token_id, amount_: nat) : t => {
     return Big_map.add(newTokenId, amount_, supply)

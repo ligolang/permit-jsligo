@@ -14,7 +14,7 @@ type result = [list<operation>, storage]
 type gen_extension = Extension.t
 export type extension = gen_extension<token_total_supply>
 
-export type mintOrBurn = 
+export type mintOrBurn =
 // @layout:comb
 {
    owner    : address,
@@ -25,7 +25,7 @@ export type mintOrBurn =
 export type permitParams = [key, [signature, bytes]];
 export type expiryParams = [address, [nat, option<bytes>]];
 
-const create = (paramCreate: [FA2.TokenMetadata.data, address, nat], s: storage) : result => {
+@entry const create_token = (paramCreate: [FA2.TokenMetadata.data, address, nat], s: storage) : result => {
     let [metadata,owner,amount] = paramCreate;
     Extension.assertAdmin(s.extension);
     let md = Storage.addNewToken(s.token_metadata, metadata.token_id, metadata);
@@ -36,7 +36,7 @@ const create = (paramCreate: [FA2.TokenMetadata.data, address, nat], s: storage)
     return [Constants.noOperation, { ...newStore, extension : Extension.setExtension(s.extension, supply) }]
 };
 
-const mint = (lst: list<mintOrBurn>, s: storage) : result => {
+@entry const mint_token = (lst: list<mintOrBurn>, s: storage) : result => {
     Extension.assertAdmin(s.extension);
     let processOne = ([ledgerAndSupply, paramMint] : [[FA2.Ledger.t, TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, TokenTotalSupply.t] => {
         let [ledger,supply] = ledgerAndSupply;
@@ -52,7 +52,7 @@ const mint = (lst: list<mintOrBurn>, s: storage) : result => {
     return [Constants.noOperation, { ...store, extension : Extension.setExtension(s.extension, supply) }]
 };
 
-const burn = (lst: list<mintOrBurn>, s: storage) : result => {
+@entry const burn_token = (lst: list<mintOrBurn>, s: storage) : result => {
    Extension.assertAdmin(s.extension);
    let processOne = ([ledgerAndSupply, paramBurn] : [[FA2.Ledger.t, Extension.TokenTotalSupply.t], mintOrBurn]) : [FA2.Ledger.t, Extension.TokenTotalSupply.t] => {
       let [ledger,supply] = ledgerAndSupply;
@@ -68,22 +68,20 @@ const burn = (lst: list<mintOrBurn>, s: storage) : result => {
 };
 
 // TZIP-17
-const permit = (permits: list<permitParams>, s: storage) : result => {
+@entry const permit = (permits: list<permitParams>, s: storage) : result => {
     let processPermit = ([ext, permit] : [extension, permitParams]) : extension => {
         let [pub_key, [sig, hash_]] = permit;
         let packed = Bytes.pack ([[(Tezos.get_chain_id()), Tezos.get_self_address()], [ext.counter, hash_]]);
         if (Crypto.check(pub_key, sig, packed)) {
             let sender_ = Tezos.address (Tezos.implicit_account (Crypto.hash_key(pub_key)));
             let paramPermitKey = [sender_, hash_];
-            let extModified = match (Big_map.find_opt(paramPermitKey, ext.permits), {
-                None: () => {
-                    return Extension.addPermit(ext, paramPermitKey)
-                },
-                Some: (submission_timestamp: timestamp) => {
+            let extModified = match (Big_map.find_opt(paramPermitKey, ext.permits)) {
+                when(None()): Extension.addPermit(ext, paramPermitKey);
+                when(Some(submission_timestamp)): do {
                     Extension._checkNotExpired(s.extension, submission_timestamp, paramPermitKey);
                     return Extension.updatePermit(ext, paramPermitKey)
-                }
-            });
+                };
+            };
             return extModified;
         } else {
             return (Michelson `{FAILWITH}` as ((n: [string, bytes]) => extension)) ([Errors.missigned, packed])
@@ -94,37 +92,33 @@ const permit = (permits: list<permitParams>, s: storage) : result => {
 };
 
 // TZIP-17
-const setExpiry = (p: expiryParams, s: storage) : result => {
+@entry const setExpiry = (p: expiryParams, s: storage) : result => {
     let [userAddress, [seconds, permitHashOpt]] = p;
     let _checkMaxExpiry : unit = assert_with_error((seconds <= s.extension.maxExpiry), Errors.maxSecondsExceeded);
     let _checkSender : unit = assert_with_error((Tezos.get_sender() == userAddress), Errors.forbiddenExpiryUpdate);
-    return match (permitHashOpt, {
-        None: () => {
-            return [
+    return match (permitHashOpt) {
+        when(None()): [
                 Constants.noOperation,
-                {...s, extension : { ...s.extension, 
+                {...s, extension : { ...s.extension,
                     userExpiries : Big_map.add(userAddress, (Some(seconds)), s.extension.userExpiries) }}
             ];
-        },
-        Some: (permit_hash: bytes) => {
-            return [
+        when(Some(permit_hash)):[
                 Constants.noOperation,
                 { ...s, extension : {...s.extension, permitExpiries : Big_map.add(
                     [userAddress, permit_hash],
                     (Some(seconds)),
                     s.extension.permitExpiries)
                 }}
-            ]
-        }
-    });
+            ];
+    };
 };
 
 // TZIP-17 implementation of TZIP-12 Transfer
-const transferPermitted = (transfer: FA2.transfer, s: storage) : result => {
+@entry const transfer = (transfer: FA2.transfer, s: storage) : result => {
      let makeTransfer = ([acc, transferFrom] : [[FA2.Ledger.t, extension], FA2.transfer_from]) : [FA2.Ledger.t, extension] => {
         let [ledger, extension] = acc;
         let transferFromHash = Crypto.blake2b(Bytes.pack(transferFrom));
-        let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash]; 
+        let permitKey : Extension.permitKey = [transferFrom.from_, transferFromHash];
         const [isTransferAuthorized, ext] = Extension.transferPresigned(extension, permitKey);
         const {from_, txs} = transferFrom;
         let applyTransfer = ([ledger, dst] : [FA2.Ledger.t, FA2.atomic_trans]) : FA2.Ledger.t => {
@@ -148,34 +142,12 @@ const transferPermitted = (transfer: FA2.transfer, s: storage) : result => {
     return [Constants.noOperation, { ...s, ledger : newLedger, extension : newExt }]
 };
 
-const setAdmin = (addr: address, s: storage) : result => { 
+@entry const setAdmin = (addr: address, s: storage) : result => {
     return [Constants.noOperation, { ...s, extension : Extension.setAdmin(s.extension, addr) }]
 };
 
-export type parameter = 
-    ["Transfer", FA2.transfer] |
-    ["Balance_of", FA2.balance_of] |
-    ["Update_operators", FA2.update_operators] |
-    ["Create_token", [FA2.TokenMetadata.data, address, nat]] |
-    ["Mint_token", list<mintOrBurn>] |
-    ["Burn_token", list<mintOrBurn>] |
-    ["Permit", list<permitParams>] |
-    ["SetExpiry", expiryParams] |
-    ["SetAdmin", address];
-
-export const main = (p: parameter, s: storage): result => {
-    return match (p, {
-        Transfer:         p => transferPermitted(p,s),
-        Balance_of:       p => FA2.balance_of(p)(s),
-        Update_operators: p => FA2.update_ops(p)(s),
-        Create_token:     p => create(p, s),
-        Mint_token:       p => mint(p, s),
-        Burn_token:       p => burn(p, s),
-        Permit:           p => permit(p, s),
-        SetExpiry:        p => setExpiry(p, s),
-        SetAdmin:         p => setAdmin(p, s)
-    })
-};
+@entry const balance_of = (p : FA2.balance_of, s : storage): result => FA2.balance_of(p)(s);
+@entry const update_operators = (p : FA2.update_operators, s : storage): result => FA2.update_ops(p)(s);
 
 //     Off-chain views required by TZIP-17
 //     Command to run to get the micheline expressions to put in the metadata:

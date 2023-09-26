@@ -8,7 +8,7 @@
 const _ = Log.describe("[Create_token] test suite");
 
 // Boostrapping of the test environment
-const init_tok_amount = (10 as nat);
+const init_tok_amount = 10n;
 
 const bootstrap = () : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(Bootstrap.dummy_genesis_ts);
@@ -21,10 +21,11 @@ const bootstrap = () : [Token_helper.originated, address, [[address, key, string
 // Successful token creation
 const _test_success = () : unit => {
     let [tok, admin, owners] = bootstrap();
-    let [[owner1_addr, _, _], _, _] = owners;
-    Test.set_source (admin);
-    let token_id = (42 as nat);
-    let amount_ = (12 as nat);
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
+    Test.set_source(admin);
+    let token_id = 42n;
+    let amount_ = 12n;
     Token_helper.createTokenSuccess
       (FA2_helper.get_dummy_token_data (token_id),
        owner1_addr, amount_, tok.contr);
@@ -35,22 +36,24 @@ const _test_success = () : unit => {
 // Failure because token id already present
 const _test_failure_token_exist = () : unit => {
     let [tok, admin, owners] = bootstrap();
-    let [[owner1_addr, _, _], _, _] = owners;
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     Test.set_source (admin);
     let r = Token_helper.createToken
-      (FA2_helper.get_dummy_token_data ((1 as nat)),
-       owner1_addr, (12 as nat), tok.contr);
+      (FA2_helper.get_dummy_token_data(1n),
+       owner1_addr, 12n, tok.contr);
     Assert.string_failure(r, Token.Errors.tokenExist)
 };
 
 // Failure because sender is not current admin
 const _test_failure_not_admin = () : unit => {
     let [tok, _, owners] = bootstrap();
-    let [[owner1_addr, _, _], _, _] = owners;
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     Test.set_source (owner1_addr);
     let r = Token_helper.createToken
-      (FA2_helper.get_dummy_token_data ((42 as nat)),
-       owner1_addr, (12 as nat), tok.contr);
+      (FA2_helper.get_dummy_token_data(42n),
+       owner1_addr, 12n, tok.contr);
     Assert.string_failure(r, Token.Errors.requiresAdmin)
 };
 

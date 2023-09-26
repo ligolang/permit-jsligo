@@ -7,7 +7,7 @@
 const _ = Log.describe("[Set_admin] test suite");
 
 // Boostrapping of the test environment
-const init_tok_amount = (10 as nat);
+const init_tok_amount = 10n;
 
 const bootstrap = () : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(Bootstrap.dummy_genesis_ts);
@@ -20,8 +20,8 @@ const bootstrap = () : [Token_helper.originated, address, [[address, key, string
 // Successful setting of admin
 const _test_success_set_admin = (_: unit) : unit => {
     let [tok, admin, owners] = bootstrap();
-    let [owner1, _, _] = owners;
-    let [owner1_addr, _, _] = owner1;
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     Test.set_source(admin);
     Token_helper.setAdminSuccess(owner1_addr, tok.contr);
     let s = Test.get_storage(tok.taddr);
@@ -30,9 +30,9 @@ const _test_success_set_admin = (_: unit) : unit => {
 
 // Failure because sender is not current admin
 const _test_failure_not_admin = (_: unit) : unit => {
-    let [tok,_, owners] = bootstrap();
-    let [owner1, _, _] = owners;
-    let [owner1_addr, _, _] = owner1;
+    let [tok,_admin, owners] = bootstrap();
+    let [owner1, _owner2, _owner3] = owners;
+    let [owner1_addr, _owner1_1, _owner1_2] = owner1;
     let r = Token_helper.setAdmin(owner1_addr, tok.contr);
     Assert.string_failure(r, Token.Errors.requiresAdmin)
 };

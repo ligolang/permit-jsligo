@@ -8,7 +8,7 @@
 const _ = Log.describe("[Burn_token] test suite");
 
 // Boostrapping of the test environment
-const init_tok_amount = (10 as nat);
+const init_tok_amount = 10n;
 
 const bootstrap = () : [Token_helper.originated, address, [[address, key, string], [address, key, string], [address, key, string]]] => {
     let [admin, owners, owners_with_keys, ops] = Bootstrap.boot_state(Bootstrap.dummy_genesis_ts);
@@ -21,10 +21,10 @@ const bootstrap = () : [Token_helper.originated, address, [[address, key, string
 // Successful token mint
 const _test_success = () : unit => {
     let [tok, admin, owners] = bootstrap();
-    let [[owner1_addr, _, _], _, _] = owners;
+    let [[owner1_addr, _owner1_1, _owner1_2], _owner2, _owner3] = owners;
     Test.set_source (admin);
-    let token_id = (1 as nat);
-    let amount_ = (6 as nat);
+    let token_id = 1n;
+    let amount_ = 6n;
     Token_helper.burnTokenSuccess(list([{
        owner:owner1_addr,
        tokenId:token_id,
@@ -38,12 +38,12 @@ const _test_success = () : unit => {
 // Failure because sender is not current admin
 const _test_failure_not_admin = () : unit => {
     let [tok, _, owners] = bootstrap();
-    let [[owner1_addr, _, _], _, _] = owners;
+    let [[owner1_addr, _owner1_1, _owner1_2], _owner2, _owner3] = owners;
     Test.set_source (owner1_addr);
     let r = Token_helper.burnToken(list([{
        owner:owner1_addr,
-       tokenId:(1 as nat),
-       amount_:(1 as nat)
+       tokenId:1n,
+       amount_:1n
     }]), tok.contr);
     Assert.string_failure(r, Token.Errors.requiresAdmin)
 };

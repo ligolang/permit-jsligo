@@ -2,20 +2,20 @@
 #import "../helpers/fa2.jsligo" "FA2_helper"
 #import "../../src/main.jsligo" "Token"
 
-// Some dummy value when they don't matter for a given test 
-const dummy_genesis_ts = ("2000-01-01t10:10:10Z" as timestamp);
+// Some dummy value when they don't matter for a given test
+export const dummy_genesis_ts = ("2000-01-01t10:10:10Z" as timestamp);
 
 
 // Boostrapping of the test environment,
 // init_ts is the initial timestamp of the genesis block
-export const boot_state = (init_ts : timestamp) : 
-    [address, 
-    [address, address, address], 
+export const boot_state = (init_ts : timestamp) :
+    [address,
+    [address, address, address],
     [[address, key, string], [address, key, string], [address, key, string]],
     [address, address, address]] => {
-    Test.reset_state_at(init_ts, (7 as nat), (list([(10000000 as tez)]) as list<tez>));
+    Test.reset_state_at(init_ts, 7n, (list([10000000tez]) as list<tez>));
 
-    // don't use 0 because it the baking account and may run out of tez 
+    // don't use 0 because it the baking account and may run out of tez
     let admin = Test.nth_bootstrap_account(6);
 
     let owners =
@@ -24,9 +24,9 @@ export const boot_state = (init_ts : timestamp) :
         Test.nth_bootstrap_account(2)];
 
     let owners_with_keys =
-        [Test.get_bootstrap_account(0 as nat),
-        Test.get_bootstrap_account(1 as nat),
-        Test.get_bootstrap_account(2 as nat)];
+        [Test.get_bootstrap_account(0n),
+        Test.get_bootstrap_account(1n),
+        Test.get_bootstrap_account(2n)];
 
     let ops =
         [Test.nth_bootstrap_account(3),
@@ -39,20 +39,20 @@ export const boot_state = (init_ts : timestamp) :
 // Bootstrapping of the contract under test,
 // init_tok_amount is the amount of token allocated to every
 // bootstrapped accounts
-export const boot_token = 
-(owners: [address, address, address], 
- ops: [address, address, address], 
- init_tok_amount: nat, 
+export const boot_token =
+(owners: [address, address, address],
+ ops: [address, address, address],
+ init_tok_amount: nat,
  init_extended_storage: Token.extension) : Token_helper.originated => {
     let initial_fa2_storage = FA2_helper.get_initial_storage(
         owners, ops, init_tok_amount
     );
 
-    // supply matching initial ledger 
+    // supply matching initial ledger
     let supply : Token.TokenTotalSupply.t = Big_map.literal( list([
-       [(1 as nat), init_tok_amount],
-       [(2 as nat), (init_tok_amount * (2 as nat))],
-       [(3 as nat), init_tok_amount]
+       [1n, init_tok_amount],
+       [2n, (init_tok_amount * 2n)],
+       [3n, init_tok_amount]
     ]));
 
     let init_storage = {
